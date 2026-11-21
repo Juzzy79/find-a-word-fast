@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { GameMode, GridSize, DifficultyLevel } from '../types/game';
 import { Trophy, Swords, Calendar, Flame, Shuffle, ArrowRight, X, Compass, Coffee, Sparkles } from 'lucide-react';
 import { getWeeklyCompetitionSeed, getAvailableThemes } from '../utils/wordList';
 
 interface CompetitionModalProps {
   isOpen: boolean;
+  initialMode?: GameMode;
   onClose: () => void;
   onStartGame: (options: {
     mode: GameMode;
@@ -20,17 +21,27 @@ interface CompetitionModalProps {
 
 export const CompetitionModal: React.FC<CompetitionModalProps> = ({
   isOpen,
+  initialMode,
   onClose,
   onStartGame,
   onOpenAdmin
 }) => {
-  const [selectedMode, setSelectedMode] = useState<GameMode>('duel');
+  const [selectedMode, setSelectedMode] = useState<GameMode>(initialMode || 'duel');
   const [gridSize, setGridSize] = useState<GridSize>(18);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('pro');
   const [seriesRounds, setSeriesRounds] = useState<number>(3);
   const [isChaosMode, setIsChaosMode] = useState<boolean>(false);
   const [isTacticsMode, setIsTacticsMode] = useState<boolean>(false);
   const [selectedThemeId, setSelectedThemeId] = useState<string>('');
+
+  useEffect(() => {
+    if (isOpen && initialMode) {
+      setSelectedMode(initialMode);
+      if (initialMode === 'zen') {
+        setDifficulty('expert');
+      }
+    }
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 
@@ -56,7 +67,8 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          aria-label="Close competition setup"
+          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -91,9 +103,9 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-slate-100">Quick Duel (1-Round Showdown)</span>
-                    <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
-                      New Board
+                    <span className="font-bold text-sm text-slate-100">Duel</span>
+                    <span className="text-xs uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
+                      1-Round Showdown
                     </span>
                   </div>
                   <div className="text-xs text-slate-400">Generates a fresh, random theme & puzzle board every single time</div>
@@ -123,7 +135,7 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                   <Flame className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-slate-100">Multi-Round Series</div>
+                  <div className="font-bold text-sm text-slate-100">Series</div>
                   <div className="text-xs text-slate-400">Play across multiple boards with aggregate leaderboard</div>
                 </div>
               </div>
@@ -176,8 +188,8 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-slate-100">Weekly Championship ({weekLabel})</span>
-                    <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                    <span className="font-bold text-sm text-slate-100">Weekly ({weekLabel})</span>
+                    <span className="text-xs uppercase font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
                       Fixed All Week
                     </span>
                   </div>
@@ -212,9 +224,9 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-slate-100">Zen Mode (No Timers / Relaxed)</span>
-                    <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30 font-semibold">
-                      All Directions
+                    <span className="font-bold text-sm text-slate-100">Zen</span>
+                    <span className="text-xs uppercase font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30 font-semibold">
+                      Untimed &bull; All Directions
                     </span>
                   </div>
                   <div className="text-xs text-slate-400">Zero timers, no clock pressure, board includes all 8 directions & diagonals</div>
@@ -253,14 +265,14 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                   },
                   {
                     lvl: 'pro' as DifficultyLevel,
-                    title: 'Pro ✨',
+                    title: 'Pro',
                     desc: '+ Diagonals',
                     sub: 'Forward diagonals',
                     activeColor: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
                   },
                   {
                     lvl: 'expert' as DifficultyLevel,
-                    title: 'Expert ⚡',
+                    title: 'Expert',
                     desc: '8-Way + Rev',
                     sub: 'Reverse & diag',
                     activeColor: 'bg-violet-500/20 border-violet-500/50 text-violet-300'
@@ -276,8 +288,8 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                     }`}
                   >
                     <div className="text-xs font-bold font-mono">{item.title}</div>
-                    <div className="text-[11px] font-semibold">{item.desc}</div>
-                    <div className="text-[9px] text-slate-500">{item.sub}</div>
+                    <div className="text-xs font-semibold">{item.desc}</div>
+                    <div className="text-xs text-slate-400">{item.sub}</div>
                   </button>
                 ))}
               </div>
@@ -304,7 +316,7 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                     }`}
                   >
                     <div className="text-xs font-bold font-mono">{item.sz}×{item.sz}</div>
-                    <div className="text-[10px] text-slate-500">{item.words}</div>
+                    <div className="text-xs text-slate-400">{item.words}</div>
                   </button>
                 ))}
               </div>
@@ -326,7 +338,7 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                           onClose();
                           onOpenAdmin();
                         }}
-                        className="text-[10px] text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer flex items-center gap-1 font-semibold"
+                        className="text-xs text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer flex items-center gap-1 font-semibold"
                       >
                         <Sparkles className="w-3 h-3" />
                         <span>+ Custom Topics</span>
@@ -336,7 +348,7 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setSelectedThemeId('')}
-                        className="text-[10px] text-cyan-400 hover:underline cursor-pointer"
+                        className="text-xs text-cyan-400 hover:underline cursor-pointer"
                       >
                         Reset to Random
                       </button>
@@ -348,12 +360,12 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                   onChange={e => setSelectedThemeId(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-dark-950 border border-slate-800 text-xs font-semibold text-slate-200 focus:outline-none focus:border-cyan-500/60 cursor-pointer"
                 >
-                  <option value="">🎲 Random Theme (Surprise Me)</option>
+                  <option value="">Random Theme (Surprise Me)</option>
                   {themes.some(t => t.isCustom) && (
-                    <optgroup label="✨ Custom Created Topics">
+                    <optgroup label="Custom Created Topics">
                       {themes.filter(t => t.isCustom).map(t => (
                         <option key={t.id} value={t.id}>
-                          ✨ {t.name}
+                          {t.name}
                         </option>
                       ))}
                     </optgroup>
@@ -367,7 +379,7 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                   </optgroup>
                 </select>
                 {selectedThemeId && (
-                  <div className="text-[10px] text-slate-400 mt-1 pl-1">
+                  <div className="text-xs text-slate-400 mt-1 pl-1">
                     {themes.find(t => t.id === selectedThemeId)?.description}
                   </div>
                 )}
@@ -380,7 +392,7 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                 <Shuffle className="w-4 h-4 text-violet-400" />
                 <div>
                   <div className="text-xs font-bold text-slate-200">Total Chaos Mode</div>
-                  <div className="text-[10px] text-slate-400">Completely random words instead of a single theme</div>
+                  <div className="text-xs text-slate-400">Completely random words instead of a single theme</div>
                 </div>
               </div>
               <button
@@ -405,11 +417,11 @@ export const CompetitionModal: React.FC<CompetitionModalProps> = ({
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-slate-200">Tactical Warfare</span>
-                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
+                    <span className="text-xs uppercase font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
                       Curses & Traps
                     </span>
                   </div>
-                  <div className="text-[10px] text-slate-400">Earn ambush traps by landing 5s combos; curse opponents with cloaked letters!</div>
+                  <div className="text-xs text-slate-400">Earn ambush traps by landing 5s combos; curse opponents with cloaked letters!</div>
                 </div>
               </div>
               <button

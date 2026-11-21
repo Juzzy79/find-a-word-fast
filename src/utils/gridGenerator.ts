@@ -32,31 +32,72 @@ export function getDirectionsForDifficulty(difficulty: DifficultyLevel): [number
   }
 }
 
-// Vibrant neon/editorial colors for found words
+// High-contrast, hue-separated palette tuned for readability on dark grid (#0b0f19)
 export const WORD_COLORS = [
-  '#10b981', // Emerald
-  '#06b6d4', // Cyan
-  '#8b5cf6', // Violet
-  '#f59e0b', // Amber
-  '#ec4899', // Pink
-  '#3b82f6', // Blue
-  '#14b8a6', // Teal
-  '#a855f7', // Purple
-  '#f97316', // Orange
-  '#84cc16', // Lime
-  '#6366f1', // Indigo
-  '#e11d48', // Rose
-  '#22c55e', // Green
-  '#eab308', // Yellow
-  '#0ea5e9', // Sky
-  '#d946ef', // Fuchsia
-  '#f43f5e', // Bright Red
-  '#2dd4bf', // Light Teal
-  '#fbbf24', // Warm Amber
-  '#c084fc', // Soft Purple
-  '#4ade80', // Mint
-  '#38bdf8'  // Light Sky
+  '#34d399', // Bright Emerald
+  '#fb7185', // Coral Rose
+  '#38bdf8', // Bright Sky
+  '#fbbf24', // Warm Gold
+  '#c084fc', // Lavender Violet
+  '#fb923c', // Vivid Orange
+  '#2dd4bf', // Crisp Teal
+  '#f472b6', // Hot Pink
+  '#a3e635', // Electric Lime
+  '#60a5fa', // Clear Blue
+  '#facc15', // Sun Yellow
+  '#e879f9'  // Bright Orchid
 ];
+
+function getWordCells(w: WordPlacement): [number, number][] {
+  const cells: [number, number][] = [];
+  const [startR, startC] = w.start;
+  const [dRow, dCol] = w.direction;
+  for (let i = 0; i < w.word.length; i++) {
+    cells.push([startR + i * dRow, startC + i * dCol]);
+  }
+  return cells;
+}
+
+function areWordsAdjacent(cellsA: [number, number][], cellsB: [number, number][]): boolean {
+  for (let i = 0; i < cellsA.length; i++) {
+    const [rA, cA] = cellsA[i];
+    for (let j = 0; j < cellsB.length; j++) {
+      const [rB, cB] = cellsB[j];
+      if (Math.abs(rA - rB) <= 1 && Math.abs(cA - cB) <= 1) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function assignDistinctWordColors(words: WordPlacement[]): void {
+  const cellLists = words.map(getWordCells);
+  const colorUsage = new Map<string, number>();
+  WORD_COLORS.forEach(c => colorUsage.set(c, 0));
+
+  for (let i = 0; i < words.length; i++) {
+    const neighborColors = new Set<string>();
+    for (let j = 0; j < i; j++) {
+      if (areWordsAdjacent(cellLists[i], cellLists[j])) {
+        neighborColors.add(words[j].color);
+      }
+    }
+
+    // Pick the least-used color that is NOT used by any adjacent word
+    let chosen = WORD_COLORS.find(c => !neighborColors.has(c));
+    if (chosen) {
+      const available = WORD_COLORS.filter(c => !neighborColors.has(c));
+      available.sort((a, b) => (colorUsage.get(a) || 0) - (colorUsage.get(b) || 0));
+      chosen = available[0];
+    } else {
+      chosen = WORD_COLORS[i % WORD_COLORS.length];
+    }
+
+    words[i].color = chosen;
+    colorUsage.set(chosen, (colorUsage.get(chosen) || 0) + 1);
+  }
+}
 
 // English letter frequency distribution for natural filler letters
 const WEIGHTED_LETTERS = 'EEEEEEEEEEEEAAAAAAAAAIIIIIIIIIOOOOOOOONNNNNNSSSSSSRRRRRRTTTTTTLLLLDDDDCCCCUUUUMMMMWWWFFFGGYYPPBBVKJXQZ';
@@ -177,6 +218,9 @@ export function generateGridBoard(
       }
     }
   }
+
+  // Assign distinct high-contrast colors so adjacent/overlapping words never share a color
+  assignDistinctWordColors(placedWords);
 
   // Deterministically sort words alphabetically for the player's word bank
   const sortedWords = [...placedWords].sort((a, b) => a.word.localeCompare(b.word));

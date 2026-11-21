@@ -189,18 +189,18 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
                 {copiedCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-amber-400" />}
               </button>
               {match.status === 'completed' ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">
                   <Archive className="w-3 h-3 text-amber-400" />
                   Archived Tournament
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Live Cloud Sync
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">
+            <div className="text-xs text-slate-400 mt-0.5">
               {match.mode === 'series' ? `${match.totalRounds}-Round Series` : 'Word Duel'} &bull; {round.gridSize}&times;{round.gridSize} {round.difficulty || 'pro'} &bull; Theme: <b className="text-slate-200">{round.theme}</b>
             </div>
           </div>
@@ -265,7 +265,7 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
         <div className="pt-2.5 pb-2 border-b border-slate-800/60">
           <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
             <span className="font-semibold text-slate-300">Series Progression</span>
-            <span className="font-mono text-[11px]">Round {currentRoundIndex + 1} of {match.totalRounds}</span>
+            <span className="font-mono text-xs">Round {currentRoundIndex + 1} of {match.totalRounds}</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -289,11 +289,11 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
                   }`}
                   title={`View or switch to Round ${idx + 1}: ${r.theme}`}
                 >
-                  <div className="flex items-center justify-center gap-1 text-[11px] font-bold">
+                  <div className="flex items-center justify-center gap-1 text-xs font-bold">
                     <span>Round {idx + 1}</span>
                     {myPlayed && <Check className="w-3 h-3 text-emerald-400" />}
                   </div>
-                  <div className="text-[10px] text-slate-400 truncate mt-0.5">
+                  <div className="text-xs text-slate-400 truncate mt-0.5">
                     {rWinner ? (
                       <span className="text-amber-400 font-semibold truncate">{r.theme}</span>
                     ) : isActive ? (
@@ -316,10 +316,10 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
             <div className="flex items-center gap-1.5">
               <Flame className="w-3.5 h-3.5 text-rose-400 shrink-0" />
               <span className="font-bold">Tactical Warfare Active</span>
-              <span className="text-[10px] text-rose-300/80 hidden sm:inline">&bull; 5s combos award ambush curses!</span>
+              <span className="text-xs text-rose-300/80 hidden sm:inline">&bull; 5s combos award ambush curses!</span>
             </div>
             {round?.tacticalTraps && round.tacticalTraps.length > 0 && (
-              <div className="flex items-center gap-1 text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+              <div className="flex items-center gap-1 text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
                 <Bomb className="w-3 h-3 text-amber-400" />
                 <span>{round.tacticalTraps.length} Armed Ambush{round.tacticalTraps.length > 1 ? 'es' : ''}</span>
               </div>
@@ -332,18 +332,18 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
             <Clock className="w-3.5 h-3.5 text-cyan-400" />
             Round {currentRoundIndex + 1} Player Status
           </span>
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-xs font-mono text-slate-400">
             {completedCount} of {participants.length} finished
           </span>
         </div>
 
         {/* Helpful notice if an unplayed player or pre-login ghost player is holding up the round */}
         {completedCount < participants.length && participants.length > 1 && (
-          <div className="mb-2 text-[11px] text-amber-300/90 bg-amber-950/30 border border-amber-500/30 px-3 py-1.5 rounded-xl flex items-center justify-between gap-2 flex-wrap">
+          <div className="mb-2 text-xs text-amber-300/90 bg-amber-950/30 border border-amber-500/30 px-3 py-1.5 rounded-xl flex items-center justify-between gap-2 flex-wrap">
             <span>
               Waiting for <b>{participants.length - completedCount} player{participants.length - completedCount > 1 ? 's' : ''}</b> to finish.
             </span>
-            <span className="text-slate-400 text-[10px]">
+            <span className="text-slate-400 text-xs">
               Tap <UserMinus className="w-3 h-3 inline text-rose-400 mx-0.5" /> next to any inactive or duplicate player to remove them.
             </span>
           </div>
@@ -387,13 +387,13 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
                     <div className="flex items-center gap-1.5 truncate">
                       <span className="font-bold text-xs truncate">{player}</span>
                       {isMe && (
-                        <span className="text-[9px] uppercase font-mono font-bold bg-cyan-500/20 text-cyan-300 px-1 py-0.2 rounded border border-cyan-500/30 shrink-0">
+                        <span className="text-xs uppercase font-mono font-bold bg-cyan-500/20 text-cyan-300 px-1 py-0.2 rounded border border-cyan-500/30 shrink-0">
                           You
                         </span>
                       )}
                     </div>
 
-                    <div className="text-[10px] mt-0.5">
+                    <div className="text-xs mt-0.5">
                       {hasPlayed ? (
                         <span className="text-emerald-400 font-semibold flex items-center gap-1">
                           <Check className="w-2.5 h-2.5" />
@@ -407,7 +407,7 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
                       ) : isMe ? (
                         <span className="text-amber-400 font-semibold">Your turn &bull; Ready to race</span>
                       ) : (
-                        <span className="text-slate-500 italic">Waiting for turn...</span>
+                        <span className="text-slate-400 italic">Waiting for turn...</span>
                       )}
                     </div>
                   </div>
@@ -431,7 +431,7 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
                         {formatMs(res.elapsedMs)}
                       </div>
                       {res.burstSpeedMs > 0 && (
-                        <div className="text-[9px] font-mono text-slate-400">
+                        <div className="text-xs font-mono text-slate-400">
                           Best {formatSecondsShort(res.burstSpeedMs)}
                         </div>
                       )}
@@ -457,7 +457,7 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
                           onRemoveParticipant(player);
                         }
                       }}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/50 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/50 border border-transparent hover:border-rose-500/30 transition-all cursor-pointer"
                       title={`Remove ${player} from this room`}
                     >
                       <UserMinus className="w-3.5 h-3.5" />
@@ -481,7 +481,7 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
                 <div className="text-xs font-extrabold text-slate-100">
                   Round {currentRoundIndex + 1} Complete! Winner: <span className="text-amber-300">{roundWinner?.playerName}</span> ({roundWinner ? formatMs(roundWinner.elapsedMs) : ''})
                 </div>
-                <div className="text-[11px] text-slate-400">
+                <div className="text-xs text-slate-400">
                   Both players have finished! Ready to roll the puzzle for Round {currentRoundIndex + 2}?
                 </div>
               </div>
@@ -505,17 +505,18 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
               <div>
                 <div className="text-xs sm:text-sm font-black text-amber-300 flex items-center gap-2 flex-wrap">
                   <span>Tournament Finished!</span>
-                  <span className="text-slate-100 bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 rounded-lg">
-                    👑 Champion: {seriesLeader}
+                  <span className="text-slate-100 bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 rounded-lg inline-flex items-center gap-1">
+                    <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>Champion: {seriesLeader}</span>
                   </span>
                   {match.status === 'completed' && (
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
                       <Archive className="w-3 h-3" />
                       Archived in Hall of Fame
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] text-slate-300 mt-0.5">
+                <div className="text-xs text-slate-300 mt-0.5">
                   All {match.totalRounds} {match.totalRounds === 1 ? 'round' : 'rounds'} completed! Stats and historic records have been engraved.
                 </div>
               </div>
@@ -559,7 +560,7 @@ export const CloudMatchHub: React.FC<CloudMatchHubProps> = ({
               <div className="text-xs font-bold text-slate-200">
                 It's your turn for Round {currentRoundIndex + 1}!
               </div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-xs text-slate-400">
                 {deduplicatedResults.length > 0
                   ? `Target time to beat: ${formatMs(deduplicatedResults[0].elapsedMs)} (${deduplicatedResults[0].playerName})`
                   : 'You will set the opening target time for this round!'}

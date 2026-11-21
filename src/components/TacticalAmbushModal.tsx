@@ -87,7 +87,7 @@ export const TacticalAmbushModal: React.FC<TacticalAmbushModalProps> = ({
                 <span className="text-xs font-black uppercase tracking-wider text-amber-400">
                   Tactical Warfare
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 border border-amber-500/40 text-amber-300">
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 border border-amber-500/40 text-amber-300">
                   {earnedTrapsCount} Token{earnedTrapsCount > 1 ? 's' : ''} Earned
                 </span>
               </div>
@@ -120,13 +120,14 @@ export const TacticalAmbushModal: React.FC<TacticalAmbushModalProps> = ({
                     key={`target-${idx}`}
                     type="button"
                     onClick={() => setSelectedTarget(opp)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer inline-flex items-center gap-1 ${
                       selectedTarget.toLowerCase() === opp.toLowerCase()
                         ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md shadow-amber-500/10'
                         : 'bg-dark-950 border-slate-800 text-slate-400 hover:border-slate-700'
                     }`}
                   >
-                    🎯 {opp}
+                    <Crosshair className="w-3.5 h-3.5 shrink-0" />
+                    <span>{opp}</span>
                   </button>
                 ))
               ) : (
@@ -157,7 +158,7 @@ export const TacticalAmbushModal: React.FC<TacticalAmbushModalProps> = ({
                   <EyeOff className="w-4 h-4 text-amber-400" />
                   <span className="text-xs font-bold">Blindfold List</span>
                 </div>
-                <div className="text-[10px] text-slate-400 leading-tight">
+                <div className="text-xs text-slate-400 leading-tight">
                   Scrambles word bank into ??? for 60s. Forces blind grid hunt!
                 </div>
               </button>
@@ -176,7 +177,7 @@ export const TacticalAmbushModal: React.FC<TacticalAmbushModalProps> = ({
                   <Ghost className="w-4 h-4 text-violet-400" />
                   <span className="text-xs font-bold">Phantom Letter</span>
                 </div>
-                <div className="text-[10px] text-slate-400 leading-tight">
+                <div className="text-xs text-slate-400 leading-tight">
                   Cloaks any letter invisible for 30s at your chosen ambush second!
                 </div>
               </button>
@@ -195,7 +196,7 @@ export const TacticalAmbushModal: React.FC<TacticalAmbushModalProps> = ({
                   <CloudFog className="w-4 h-4 text-cyan-400" />
                   <span className="text-xs font-bold">Dense Mist</span>
                 </div>
-                <div className="text-[10px] text-slate-400 leading-tight">
+                <div className="text-xs text-slate-400 leading-tight">
                   Obscures a quadrant of the board with smoke for 20 seconds.
                 </div>
               </button>
@@ -250,12 +251,12 @@ export const TacticalAmbushModal: React.FC<TacticalAmbushModalProps> = ({
                           : 'bg-dark-900 border-slate-800 text-slate-400 hover:border-slate-700'
                       }`}
                     >
-                      {sec}s {sec === 15 ? '⚡ Early' : sec === 45 ? '🎯 Late' : ''}
+                      {sec}s {sec === 15 ? '(Early)' : sec === 45 ? '(Late)' : ''}
                     </button>
                   ))}
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1.5 italic">
-                  💡 Risk/Reward: If opponent solves the board in under {triggerSec}s, they DODGE it completely!
+                <div className="text-xs text-slate-400 mt-1.5 italic">
+                  Risk/Reward: If opponent solves the board in under {triggerSec}s, they DODGE it completely!
                 </div>
               </div>
             </div>
@@ -271,7 +272,7 @@ export const TacticalAmbushModal: React.FC<TacticalAmbushModalProps> = ({
               <p className="text-xs text-slate-300 leading-relaxed">
                 Right from the start of the round, the word bank sidebar is scrambled into glitching static. The opponent will have to search the grid blindly using only their thematic intuition!
               </p>
-              <div className="text-[10px] text-slate-400 italic">
+              <div className="text-xs text-slate-400 italic">
                 Active immediately at 0s &bull; Lasts for 60 seconds
               </div>
             </div>
@@ -319,7 +320,7 @@ export const TacticalAmbushModal: React.FC<TacticalAmbushModalProps> = ({
             className="w-full sm:flex-1 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-amber-500 text-dark-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 hover:opacity-95 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer"
           >
             <Bomb className="w-4 h-4 fill-dark-950" />
-            <span>Arm Ambush Trap 💣</span>
+            <span>Arm Ambush Trap</span>
           </button>
         </div>
       </div>

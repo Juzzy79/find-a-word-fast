@@ -103,3 +103,9 @@
 .animate-shake {
   animation: shake 0.35s ease-in-out;
 }
+
+/* Visible keyboard focus ring across all interactive elements */
+:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 2px;
+}

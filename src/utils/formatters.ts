@@ -30,7 +30,7 @@ export function formatDate(timestamp: number): string {
   });
 }
 
-// Generates the Farkle-style pass-turn share message
+// Generates the pass-turn share message
 export function generateShareMessage(
   game: SharedGameState,
   currentPlayer: string,

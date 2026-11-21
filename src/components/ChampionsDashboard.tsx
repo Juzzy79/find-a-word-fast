@@ -172,7 +172,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
         {/* Global Key Stats Cards Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 mt-5 pt-4 border-t border-slate-800/80">
           <div className="bg-dark-950/70 p-3 rounded-2xl border border-amber-500/20 backdrop-blur-sm">
-            <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase text-slate-400 mb-0.5">
+            <div className="flex items-center gap-1.5 text-xs font-mono uppercase text-slate-400 mb-0.5">
               <Archive className="w-3.5 h-3.5 text-amber-400" />
               <span>Tournaments</span>
             </div>
@@ -182,7 +182,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
           </div>
 
           <div className="bg-dark-950/70 p-3 rounded-2xl border border-emerald-500/20 backdrop-blur-sm">
-            <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase text-slate-400 mb-0.5">
+            <div className="flex items-center gap-1.5 text-xs font-mono uppercase text-slate-400 mb-0.5">
               <Crown className="w-3.5 h-3.5 text-emerald-400" />
               <span>Champions</span>
             </div>
@@ -192,7 +192,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
           </div>
 
           <div className="bg-dark-950/70 p-3 rounded-2xl border border-cyan-500/20 backdrop-blur-sm">
-            <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase text-slate-400 mb-0.5">
+            <div className="flex items-center gap-1.5 text-xs font-mono uppercase text-slate-400 mb-0.5">
               <Zap className="w-3.5 h-3.5 text-cyan-400" />
               <span>Record Round</span>
             </div>
@@ -202,7 +202,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
           </div>
 
           <div className="bg-dark-950/70 p-3 rounded-2xl border border-violet-500/20 backdrop-blur-sm">
-            <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase text-slate-400 mb-0.5">
+            <div className="flex items-center gap-1.5 text-xs font-mono uppercase text-slate-400 mb-0.5">
               <Sparkles className="w-3.5 h-3.5 text-violet-400" />
               <span>Rounds Played</span>
             </div>
@@ -283,7 +283,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                           <Medal className="w-3.5 h-3.5 text-slate-300" />
                           <span>2nd Place</span>
                         </span>
-                        <span className="text-[11px] font-mono text-slate-400">
+                        <span className="text-xs font-mono text-slate-400">
                           {globalChampions[1].winRate}% Win Rate
                         </span>
                       </div>
@@ -298,8 +298,9 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                           <div className="text-base font-extrabold text-slate-100 truncate">
                             {globalChampions[1].playerName}
                           </div>
-                          <div className="text-xs text-slate-400 font-mono">
-                            👑 <b>{globalChampions[1].tournamentsWon}</b> title{globalChampions[1].tournamentsWon !== 1 ? 's' : ''} &bull; {globalChampions[1].totalRoundsWon} rounds won
+                          <div className="text-xs text-slate-400 font-mono flex items-center gap-1">
+                            <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <span><b>{globalChampions[1].tournamentsWon}</b> title{globalChampions[1].tournamentsWon !== 1 ? 's' : ''} &bull; {globalChampions[1].totalRoundsWon} rounds won</span>
                           </div>
                         </div>
                       </div>
@@ -336,13 +337,14 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                           <div className="text-lg font-black text-amber-200 truncate flex items-center gap-1.5">
                             <span>{globalChampions[0].playerName}</span>
                             {globalChampions[0].playerName.toLowerCase() === currentPlayer.toLowerCase() && (
-                              <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/40">
+                              <span className="text-xs font-mono font-bold bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/40">
                                 You
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-amber-400/90 font-mono font-semibold">
-                            🏆 <b>{globalChampions[0].tournamentsWon}</b> Tournament Titles &bull; {globalChampions[0].totalRoundsWon} Rounds Won
+                          <div className="text-xs text-amber-400/90 font-mono font-semibold flex items-center gap-1">
+                            <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <span><b>{globalChampions[0].tournamentsWon}</b> Tournament Titles &bull; {globalChampions[0].totalRoundsWon} Rounds Won</span>
                           </div>
                         </div>
                       </div>
@@ -363,7 +365,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                           <Medal className="w-3.5 h-3.5 text-amber-600" />
                           <span>3rd Place</span>
                         </span>
-                        <span className="text-[11px] font-mono text-slate-400">
+                        <span className="text-xs font-mono text-slate-400">
                           {globalChampions[2].winRate}% Win Rate
                         </span>
                       </div>
@@ -378,8 +380,9 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                           <div className="text-base font-extrabold text-slate-100 truncate">
                             {globalChampions[2].playerName}
                           </div>
-                          <div className="text-xs text-slate-400 font-mono">
-                            👑 <b>{globalChampions[2].tournamentsWon}</b> title{globalChampions[2].tournamentsWon !== 1 ? 's' : ''} &bull; {globalChampions[2].totalRoundsWon} rounds won
+                          <div className="text-xs text-slate-400 font-mono flex items-center gap-1">
+                            <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <span><b>{globalChampions[2].tournamentsWon}</b> title{globalChampions[2].tournamentsWon !== 1 ? 's' : ''} &bull; {globalChampions[2].totalRoundsWon} rounds won</span>
                           </div>
                         </div>
                       </div>
@@ -409,7 +412,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="border-b border-slate-800/80 bg-dark-950/60 font-mono text-slate-400 uppercase text-[10px] tracking-wider">
+                      <tr className="border-b border-slate-800/80 bg-dark-950/60 font-mono text-slate-400 uppercase text-xs tracking-wider">
                         <th className="py-3 px-4">Rank</th>
                         <th className="py-3 px-4">Contender</th>
                         <th className="py-3 px-4 text-center">Titles Won</th>
@@ -444,7 +447,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                                   3
                                 </span>
                               ) : (
-                                <span className="text-slate-500 ml-1.5">{idx + 1}</span>
+                                <span className="text-slate-400 ml-1.5">{idx + 1}</span>
                               )}
                             </td>
 
@@ -460,7 +463,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                                   <div className="font-bold text-slate-100 flex items-center gap-1.5">
                                     <span>{c.playerName}</span>
                                     {isMe && (
-                                      <span className="text-[9px] uppercase font-mono font-bold bg-cyan-500/20 text-cyan-300 px-1.5 py-0.2 rounded border border-cyan-500/30">
+                                      <span className="text-xs uppercase font-mono font-bold bg-cyan-500/20 text-cyan-300 px-1.5 py-0.2 rounded border border-cyan-500/30">
                                         You
                                       </span>
                                     )}
@@ -470,7 +473,12 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                             </td>
 
                             <td className="py-3 px-4 text-center font-mono font-extrabold text-amber-400">
-                              {c.tournamentsWon > 0 ? `👑 ${c.tournamentsWon}` : '0'}
+                              {c.tournamentsWon > 0 ? (
+                                <span className="inline-flex items-center justify-center gap-1">
+                                  <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                  <span>{c.tournamentsWon}</span>
+                                </span>
+                              ) : '0'}
                             </td>
 
                             <td className="py-3 px-4 text-center font-mono text-slate-300">
@@ -516,7 +524,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                   Fastest Round Ever
                 </span>
                 {historicRecords.fastestRound && (
-                  <span className="text-[10px] font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
+                  <span className="text-xs font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
                     Room {historicRecords.fastestRound.roomCode}
                   </span>
                 )}
@@ -538,12 +546,12 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                       {historicRecords.fastestRound.playerName}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+                  <div className="text-xs text-slate-400 pt-2 border-t border-slate-800">
                     Theme: <b className="text-slate-200">{historicRecords.fastestRound.theme}</b> ({historicRecords.fastestRound.gridSize}&times;{historicRecords.fastestRound.gridSize}) &bull; {formatDate(historicRecords.fastestRound.date)}
                   </div>
                 </div>
               ) : (
-                <div className="text-slate-500 text-xs py-4">No records recorded yet.</div>
+                <div className="text-slate-400 text-xs py-4">No records recorded yet.</div>
               )}
             </div>
 
@@ -555,7 +563,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                   Shortest Word Burst
                 </span>
                 {historicRecords.shortestBurst && (
-                  <span className="text-[10px] font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
+                  <span className="text-xs font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
                     Room {historicRecords.shortestBurst.roomCode}
                   </span>
                 )}
@@ -577,12 +585,12 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                       {historicRecords.shortestBurst.playerName}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+                  <div className="text-xs text-slate-400 pt-2 border-t border-slate-800">
                     Consecutive word find in theme <b className="text-slate-200">{historicRecords.shortestBurst.theme}</b> &bull; {formatDate(historicRecords.shortestBurst.date)}
                   </div>
                 </div>
               ) : (
-                <div className="text-slate-500 text-xs py-4">No records recorded yet.</div>
+                <div className="text-slate-400 text-xs py-4">No records recorded yet.</div>
               )}
             </div>
 
@@ -594,7 +602,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                   Closest Finish (Nail-Biter)
                 </span>
                 {historicRecords.closestFinish && (
-                  <span className="text-[10px] font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
+                  <span className="text-xs font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
                     Room {historicRecords.closestFinish.roomCode}
                   </span>
                 )}
@@ -608,12 +616,12 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                   <div className="text-xs text-slate-200 font-medium mb-2">
                     Winner: <b className="text-emerald-400">{historicRecords.closestFinish.winner}</b> edged out <b className="text-slate-300">{historicRecords.closestFinish.runnerUp}</b>
                   </div>
-                  <div className="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+                  <div className="text-xs text-slate-400 pt-2 border-t border-slate-800">
                     Separated by just {historicRecords.closestFinish.deltaMs}ms! &bull; {formatDate(historicRecords.closestFinish.date)}
                   </div>
                 </div>
               ) : (
-                <div className="text-slate-500 text-xs py-4">Requires at least one 2+ player finished tournament.</div>
+                <div className="text-slate-400 text-xs py-4">Requires at least one 2+ player finished tournament.</div>
               )}
             </div>
 
@@ -625,7 +633,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                   Fastest Word Find Pace
                 </span>
                 {historicRecords.fastestAvgWordPace && (
-                  <span className="text-[10px] font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
+                  <span className="text-xs font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
                     Room {historicRecords.fastestAvgWordPace.roomCode}
                   </span>
                 )}
@@ -648,12 +656,12 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                       {historicRecords.fastestAvgWordPace.playerName}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+                  <div className="text-xs text-slate-400 pt-2 border-t border-slate-800">
                     Average seconds to uncover each word &bull; {formatDate(historicRecords.fastestAvgWordPace.date)}
                   </div>
                 </div>
               ) : (
-                <div className="text-slate-500 text-xs py-4">No records recorded yet.</div>
+                <div className="text-slate-400 text-xs py-4">No records recorded yet.</div>
               )}
             </div>
 
@@ -665,7 +673,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                   Clean Sweep Champion
                 </span>
                 {historicRecords.mostDominantSweep && (
-                  <span className="text-[10px] font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
+                  <span className="text-xs font-mono text-slate-400 bg-dark-950 px-2 py-0.5 rounded-lg border border-slate-800">
                     Room {historicRecords.mostDominantSweep.roomCode}
                   </span>
                 )}
@@ -687,12 +695,12 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                       {historicRecords.mostDominantSweep.playerName}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+                  <div className="text-xs text-slate-400 pt-2 border-t border-slate-800">
                     Won every single round in the series! &bull; {formatDate(historicRecords.mostDominantSweep.date)}
                   </div>
                 </div>
               ) : (
-                <div className="text-slate-500 text-xs py-4">Play a multi-round series to claim a clean sweep!</div>
+                <div className="text-slate-400 text-xs py-4">Play a multi-round series to claim a clean sweep!</div>
               )}
             </div>
 
@@ -814,7 +822,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
             <div className="text-center py-12 bg-dark-900/60 rounded-3xl border border-slate-800 text-slate-400">
               <Archive className="w-10 h-10 mx-auto mb-2 text-slate-600" />
               <div className="text-sm font-bold text-slate-200 mb-1">No Archived Tournaments Match Filter</div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400">
                 Try clearing your search query or setting the filter to "All".
               </p>
             </div>
@@ -856,7 +864,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                           {m.gridSize}&times;{m.gridSize} {m.difficulty || 'pro'}
                         </span>
 
-                        <span className="text-xs text-slate-500 font-mono">
+                        <span className="text-xs text-slate-400 font-mono">
                           {formatDate(date)}
                         </span>
                       </div>
@@ -882,7 +890,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
 
                         <button
                           onClick={(e) => handleDeleteArchivedMatch(m.id, roomCode, e)}
-                          className="p-1.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-800 transition-all cursor-pointer"
+                          className="p-1.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-800 transition-all cursor-pointer"
                           title="Delete archived record"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -909,7 +917,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                             <div className="text-sm font-extrabold text-slate-100 truncate">
                               {champ.playerName}
                             </div>
-                            <div className="text-[11px] text-slate-400 font-mono">
+                            <div className="text-xs text-slate-400 font-mono">
                               Total Time: <b className="text-emerald-400">{formatMs(champ.totalTimeMs)}</b> &bull; Won {champ.roundsWon} of {m.totalRounds} round{m.totalRounds !== 1 ? 's' : ''}
                               {s.timeMarginMs !== null && (
                                 <span className="text-amber-300 ml-1">
@@ -920,12 +928,12 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                           </div>
                         </div>
                       ) : (
-                        <div className="text-slate-500 text-xs italic">No champion determined yet.</div>
+                        <div className="text-slate-400 text-xs italic">No champion determined yet.</div>
                       )}
 
                       {/* Standings List */}
                       <div className="space-y-1.5">
-                        <div className="text-[10px] font-mono uppercase text-slate-400 font-semibold">
+                        <div className="text-xs font-mono uppercase text-slate-400 font-semibold">
                           Final Tournament Standings ({s.standings.length} Contenders):
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -941,12 +949,12 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                                 }`}
                               >
                                 <div className="flex items-center gap-2 truncate">
-                                  <span className="font-bold text-[10px] text-slate-400">#{sIdx + 1}</span>
+                                  <span className="font-bold text-xs text-slate-400">#{sIdx + 1}</span>
                                   <span className="font-sans font-bold truncate text-slate-200">{st.playerName}</span>
                                 </div>
                                 <div className="text-right shrink-0">
                                   <span className="font-bold">{formatMs(st.totalTimeMs)}</span>
-                                  <span className="text-[10px] text-slate-400 ml-1">({st.roundsWon}W)</span>
+                                  <span className="text-xs text-slate-400 ml-1">({st.roundsWon}W)</span>
                                 </div>
                               </div>
                             );
@@ -1001,7 +1009,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                                       >
                                         <div className="flex items-center gap-2 truncate">
                                           <div
-                                            className="w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] text-dark-950 shrink-0"
+                                            className="w-5 h-5 rounded-md flex items-center justify-center font-bold text-xs text-dark-950 shrink-0"
                                             style={{ backgroundColor: res.avatarColor }}
                                           >
                                             {res.playerName.charAt(0).toUpperCase()}
@@ -1019,7 +1027,7 @@ export const ChampionsDashboard: React.FC<ChampionsDashboardProps> = ({
                                           {onWatchReplay && (
                                             <button
                                               onClick={() => onWatchReplay(round, res)}
-                                              className="p-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer"
+                                              className="p-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
                                               title={`Watch ${res.playerName}'s high-speed replay for this round`}
                                             >
                                               <Zap className="w-3 h-3 fill-cyan-400" />

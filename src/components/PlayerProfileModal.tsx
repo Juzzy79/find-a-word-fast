@@ -105,7 +105,7 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
                   <span>Google Account Linked</span>
                 </div>
                 <div className="font-bold text-sm text-slate-100">{currentUser.displayName}</div>
-                <div className="text-[11px] text-slate-400">{currentUser.email}</div>
+                <div className="text-xs text-slate-400">{currentUser.email}</div>
               </div>
               <button
                 onClick={onGoogleLogout}
@@ -160,12 +160,12 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
                 <div className="flex items-center gap-1.5 font-bold text-xs text-slate-100">
                   <span>Turn & Round Push Alerts</span>
                   {notifPermission === 'granted' && (
-                    <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded">
                       ACTIVE
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] text-slate-400">
+                <div className="text-xs text-slate-400">
                   {notifPermission === 'granted'
                     ? 'Get instant alerts when your opponent finishes a round'
                     : notifPermission === 'denied'
@@ -181,7 +181,7 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
                   type="button"
                   onClick={handleTestAlert}
                   disabled={isSendingTest}
-                  className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-semibold text-cyan-300 transition-all cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-cyan-300 transition-all cursor-pointer"
                   title="Sends a test push notification to verify"
                 >
                   {isSendingTest ? 'Sending...' : 'Test Alert'}
@@ -205,7 +205,7 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
           <div className="mb-4">
             <div className="text-xs font-mono uppercase text-slate-400 mb-2 font-semibold flex items-center justify-between">
               <span>Switch Active Player:</span>
-              <span className="text-[10px] text-slate-500">{savedProfiles.length} on this device</span>
+              <span className="text-xs text-slate-400">{savedProfiles.length} on this device</span>
             </div>
 
             <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
@@ -232,12 +232,12 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
                         <div className="font-bold text-xs sm:text-sm text-slate-100 flex items-center gap-1.5">
                           <span>{p}</span>
                           {isSelected && (
-                            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/20 px-1.5 py-0.2 rounded font-bold">
+                            <span className="text-xs font-mono text-emerald-400 bg-emerald-500/20 px-1.5 py-0.2 rounded font-bold">
                               ACTIVE
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] font-mono text-slate-400 flex items-center gap-2 mt-0.5">
+                        <div className="text-xs font-mono text-slate-400 flex items-center gap-2 mt-0.5">
                           <span>{pStats.puzzlesCompleted} solved</span>
                           {pStats.bestTimeMs && (
                             <span className="text-emerald-400 flex items-center gap-0.5">
@@ -290,7 +290,7 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
                 autoFocus
                 className="w-full bg-dark-900 border border-slate-800 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 font-semibold focus:outline-none transition-colors"
               />
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Entering an existing handle restores your personal stats and rivalries.
               </p>
             </div>

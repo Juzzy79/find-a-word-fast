@@ -159,7 +159,7 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({ board, turnResult, onC
                 <h2 className="text-lg sm:text-xl font-extrabold tracking-tight">
                   {turnResult.playerName}'s High-Speed Replay
                 </h2>
-                <span className="text-[10px] uppercase font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded font-bold">
+                <span className="text-xs uppercase font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded font-bold">
                   {speedMultiplier}x Speed
                 </span>
               </div>
@@ -170,7 +170,7 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({ board, turnResult, onC
           </div>
 
           <div className="text-right">
-            <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Replay Clock</div>
+            <div className="text-xs uppercase font-mono tracking-wider text-slate-400">Replay Clock</div>
             <div className="font-mono text-2xl font-black text-cyan-400">
               {formatMs(currentTimeMs)}
             </div>
@@ -321,8 +321,8 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({ board, turnResult, onC
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                        isFound ? 'bg-cyan-500/30 text-cyan-300' : 'bg-slate-800 text-slate-500'
+                      <span className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold ${
+                        isFound ? 'bg-cyan-500/30 text-cyan-300' : 'bg-slate-800 text-slate-400'
                       }`}>
                         {idx + 1}
                       </span>
@@ -331,11 +331,11 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({ board, turnResult, onC
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-[11px] shrink-0">
+                    <div className="flex items-center gap-1.5 text-xs shrink-0">
                       {isFastCombo && (
                         <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
                       )}
-                      <span className={isFastCombo ? 'text-amber-300 font-bold' : 'text-slate-500'}>
+                      <span className={isFastCombo ? 'text-amber-300 font-bold' : 'text-slate-400'}>
                         +{formatSecondsShort(gapMs)}
                       </span>
                     </div>
@@ -385,7 +385,7 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({ board, turnResult, onC
 
           {/* Speed Selector */}
           <div className="flex items-center gap-1 bg-dark-950 border border-slate-800 rounded-xl p-1">
-            <span className="text-[10px] font-mono text-slate-500 px-1.5 hidden sm:inline">SPEED:</span>
+            <span className="text-xs font-mono text-slate-400 px-1.5 hidden sm:inline">SPEED:</span>
             {[1, 2, 4, 8, 16].map(mult => (
               <button
                 key={`speed-${mult}`}

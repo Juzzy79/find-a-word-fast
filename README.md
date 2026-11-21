@@ -1,32 +1,31 @@
-# React + TypeScript + Vite
+# WordRush
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A fast-paced, multiplayer word-search game built with React 19, Vite, Tailwind CSS 4, and Firebase. Play solo or race friends on identical seeded boards across **Duel**, **Series**, **Weekly**, and **Zen** modes.
 
-Currently, two official plugins are available:
+## Getting Started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Prerequisites
+- Node.js 20+
+- npm
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+### Run Locally
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+### Production Build
+```bash
+npm run build
+```
+
+## Firebase Setup
+WordRush uses Firebase Authentication (Google Sign-In), Cloud Firestore (live multiplayer match rooms, leaderboards, and cloud stats), and Firebase Hosting.
+
+1. Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/).
+2. Enable **Authentication → Google Sign-In** and **Cloud Firestore**.
+3. Update the web app config in `src/services/firebase.ts` and the default project ID in `.firebaserc`.
+4. Deploy security rules and hosting with the Firebase CLI:
+   ```bash
+   firebase deploy
+   ```

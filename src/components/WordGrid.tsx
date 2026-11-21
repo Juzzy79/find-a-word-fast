@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { GridBoard, Coordinate } from '../types/game';
 import { sounds, triggerHaptic } from '../utils/sound';
-import { ZoomIn, ZoomOut, RotateCcw, EyeOff, Play, Pause } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, EyeOff, Play, Pause, Sparkles, Zap } from 'lucide-react';
 
 interface WordGridProps {
   board: GridBoard;
@@ -34,15 +34,20 @@ export const WordGrid: React.FC<WordGridProps> = ({
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [invalidSelection, setInvalidSelection] = useState<{ start: Coordinate; end: Coordinate } | null>(null);
   const [isShaking, setIsShaking] = useState<boolean>(false);
+  const [focusedCell, setFocusedCell] = useState<Coordinate>({ row: 0, col: 0 });
+  const [isGridFocused, setIsGridFocused] = useState<boolean>(false);
+  const [isKeyboardSelecting, setIsKeyboardSelecting] = useState<boolean>(false);
 
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef<boolean>(false);
   const lastCellRef = useRef<string>('');
   const shakeTimerRef = useRef<number | null>(null);
 
-  // Reset zoom if board size changes
+  // Reset zoom and keyboard cursor if board size changes
   useEffect(() => {
     setZoomLevel(1);
+    setFocusedCell({ row: 0, col: 0 });
+    setIsKeyboardSelecting(false);
   }, [size]);
 
   useEffect(() => {
@@ -210,6 +215,69 @@ export const WordGrid: React.FC<WordGridProps> = ({
     setSelectedCells([]);
   };
 
+  // Keyboard navigation & selection (Arrow keys move, Enter/Space starts & completes selection, Escape cancels)
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled || isCovered) return;
+
+    const { row, col } = focusedCell;
+    let nextRow = row;
+    let nextCol = col;
+    let moved = false;
+
+    if (e.key === 'ArrowUp') {
+      nextRow = Math.max(0, row - 1);
+      moved = true;
+    } else if (e.key === 'ArrowDown') {
+      nextRow = Math.min(size - 1, row + 1);
+      moved = true;
+    } else if (e.key === 'ArrowLeft') {
+      nextCol = Math.max(0, col - 1);
+      moved = true;
+    } else if (e.key === 'ArrowRight') {
+      nextCol = Math.min(size - 1, col + 1);
+      moved = true;
+    } else if (e.key === 'Escape') {
+      if (isKeyboardSelecting) {
+        e.preventDefault();
+        setIsKeyboardSelecting(false);
+        setSelectionStart(null);
+        setSelectionCurrent(null);
+        setSelectedCells([]);
+      }
+      return;
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (!isKeyboardSelecting) {
+        setIsKeyboardSelecting(true);
+        setSelectionStart(focusedCell);
+        setSelectionCurrent(focusedCell);
+        setSelectedCells([focusedCell]);
+        sounds.playTileTick();
+      } else {
+        if (selectedCells.length >= 3) {
+          checkSelection(selectedCells);
+        }
+        setIsKeyboardSelecting(false);
+        setSelectionStart(null);
+        setSelectionCurrent(null);
+        setSelectedCells([]);
+      }
+      return;
+    }
+
+    if (moved) {
+      e.preventDefault();
+      const nextCoord = { row: nextRow, col: nextCol };
+      setFocusedCell(nextCoord);
+      if (isKeyboardSelecting && selectionStart) {
+        setSelectionCurrent(nextCoord);
+        const snapped = calculateSnappedCells(selectionStart, nextCoord);
+        setSelectedCells(snapped);
+        sounds.playTileTick();
+      }
+    }
+  };
+
   // Cell styles lookup for found words
   const isCellSelected = (r: number, c: number) => {
     return selectedCells.some(cell => cell.row === r && cell.col === c);
@@ -237,37 +305,45 @@ export const WordGrid: React.FC<WordGridProps> = ({
       {/* Zoom and Pan Controls */}
       <div className="w-full flex items-center justify-between text-xs text-slate-400 mb-2 px-1 sm:px-2">
         <div className="flex items-center gap-2">
-          <span className="font-mono uppercase tracking-wider text-[11px] bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">
+          <span className="font-mono uppercase tracking-wider text-xs bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60">
             {size} × {size} Grid
           </span>
-          <span className={`text-[11px] font-mono px-2 py-0.5 rounded font-bold border ${
+          <span className={`text-xs font-mono px-2 py-0.5 rounded font-bold border inline-flex items-center gap-1 ${
             board.difficulty === 'standard'
               ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
               : board.difficulty === 'pro'
               ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
               : 'bg-violet-500/15 text-violet-300 border-violet-500/30'
           }`}>
-            {board.difficulty === 'standard'
-              ? 'Standard (H & V)'
-              : board.difficulty === 'pro'
-              ? 'Pro (Diagonals ✨)'
-              : 'Expert (8-Way ⚡)'}
+            {board.difficulty === 'standard' ? (
+              <span>Standard (H &amp; V)</span>
+            ) : board.difficulty === 'pro' ? (
+              <>
+                <span>Pro (Diagonals)</span>
+                <Sparkles className="w-3 h-3 shrink-0" />
+              </>
+            ) : (
+              <>
+                <span>Expert (8-Way)</span>
+                <Zap className="w-3 h-3 shrink-0" />
+              </>
+            )}
           </span>
         </div>
 
         <div className="flex items-center gap-1 bg-dark-900 border border-slate-800 rounded-xl p-0.5">
           <button
             onClick={() => setZoomLevel(prev => Math.max(0.7, prev - 0.1))}
-            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"
             title="Zoom Out"
             aria-label="Zoom Out"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
-          <span className="font-mono text-[11px] px-1.5 min-w-[36px] text-center select-none">{Math.round(zoomLevel * 100)}%</span>
+          <span className="font-mono text-xs px-1.5 min-w-[40px] text-center select-none">{Math.round(zoomLevel * 100)}%</span>
           <button
             onClick={() => setZoomLevel(prev => Math.min(1.4, prev + 0.1))}
-            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"
             title="Zoom In"
             aria-label="Zoom In"
           >
@@ -275,7 +351,7 @@ export const WordGrid: React.FC<WordGridProps> = ({
           </button>
           <button
             onClick={() => setZoomLevel(1)}
-            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"
             title="Reset Zoom"
             aria-label="Reset Zoom"
           >
@@ -292,11 +368,17 @@ export const WordGrid: React.FC<WordGridProps> = ({
         >
           <div
             ref={gridContainerRef}
+            role="grid"
+            aria-label={`Word search grid, ${size} by ${size}, ${board.theme} theme. Use arrow keys to move and Enter or Space to select words.`}
+            tabIndex={disabled || isCovered ? -1 : 0}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setIsGridFocused(true)}
+            onBlur={() => setIsGridFocused(false)}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
-            className={`wordrush-grid-board relative touch-no-select grid p-1.5 sm:p-2.5 rounded-2xl bg-dark-900 border border-slate-800/90 shadow-2xl overflow-hidden aspect-square ${
+            className={`wordrush-grid-board relative touch-no-select grid p-1.5 sm:p-2.5 rounded-2xl bg-dark-900 border border-slate-800/90 shadow-2xl overflow-hidden aspect-square focus-visible:outline-2 focus-visible:outline-emerald-400 focus-visible:outline-offset-2 ${
               isShaking ? 'animate-shake border-rose-500/50' : ''
             } ${
               disabled || isCovered ? 'opacity-85 pointer-events-none' : 'cursor-crosshair'
@@ -404,15 +486,22 @@ export const WordGrid: React.FC<WordGridProps> = ({
                    r >= halfSize && c >= halfSize)
                 );
 
+                const isFocused = !isCovered && isGridFocused && focusedCell.row === r && focusedCell.col === c;
+
                 return (
                   <div
                     key={`cell-${r}-${c}`}
+                    role="gridcell"
+                    aria-selected={selected}
+                    aria-label={isCovered ? `Row ${r + 1} column ${c + 1}, hidden` : `Row ${r + 1} column ${c + 1}, letter ${letter}${foundMeta.isFound ? ', found' : ''}`}
                     className={`relative z-20 flex items-center justify-center font-mono font-bold select-none rounded-sm transition-transform duration-75 w-full h-full overflow-hidden ${
                       size === 20
-                        ? 'text-[11px] sm:text-sm md:text-base leading-none'
+                        ? 'text-xs sm:text-sm md:text-base leading-none'
                         : size === 18
                         ? 'text-xs sm:text-base md:text-lg leading-none'
                         : 'text-sm sm:text-lg md:text-xl leading-none'
+                    } ${
+                      isFocused ? 'ring-2 ring-amber-400 ring-inset bg-amber-400/20 text-white z-30' : ''
                     } ${
                       isCovered
                         ? 'text-slate-700/60 font-medium scale-95'

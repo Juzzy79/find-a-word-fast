@@ -1,25 +1,15 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import type { SharedGameState, GridBoard, PlayerTurnResult, GameMode, GridSize, DifficultyLevel, TacticalTrap, LivePlayerStream } from './types/game';
 import { Header } from './components/Header';
-import { TimerDisplay } from './components/TimerDisplay';
-import { WordGrid } from './components/WordGrid';
-import { WordBank } from './components/WordBank';
-import { PassTurnModal } from './components/PassTurnModal';
-import { StatsDashboard } from './components/StatsDashboard';
-import { CompetitionModal } from './components/CompetitionModal';
-import { PlayerProfileModal } from './components/PlayerProfileModal';
-import { VictoryModal } from './components/VictoryModal';
-import { HistoryView } from './components/HistoryView';
-import { ReplayModal } from './components/ReplayModal';
-import { CloudMatchHub } from './components/CloudMatchHub';
-import { TacticalHUD } from './components/TacticalHUD';
-import { TacticalAmbushModal } from './components/TacticalAmbushModal';
-import { LiveSpectatorModal } from './components/LiveSpectatorModal';
-import { AdminTopicsDashboard } from './components/AdminTopicsDashboard';
+import { GameScreen } from './components/GameScreen';
+import { AppModals } from './components/AppModals';
+import { useGameTimer } from './hooks/useGameTimer';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
+import { useCloudMatchSync } from './hooks/useCloudMatchSync';
+import { useCloudMatchActions } from './hooks/useCloudMatchActions';
 import { generateGridBoard } from './utils/gridGenerator';
 import {
   getGameFromUrl,
-  getRoomCodeFromUrl,
   createNewGame,
   ensureUniqueTournamentRounds,
   clearUrlHash
@@ -31,40 +21,39 @@ import {
   getCareerStats
 } from './utils/statsStorage';
 import { sounds, triggerHaptic } from './utils/sound';
-import { Play, Share2, Trophy, Swords, Zap, Coffee, RotateCcw, LogOut, Flame, ChevronDown, X, Sparkles } from 'lucide-react';
-import { formatMs } from './utils/formatters';
+import { WifiOff } from 'lucide-react';
 import { auth, loginWithGoogle, logoutUser, onAuthStateChanged, type User } from './services/firebase';
-import { LiveLobbyModal } from './components/LiveLobbyModal';
-import { ChampionsDashboard } from './components/ChampionsDashboard';
-import { PsychOutModal } from './components/PsychOutModal';
 import {
-  subscribeToMatch,
-  subscribeToUserMatches,
   submitCloudTurnResult,
   saveUserCloudStats,
   fetchUserCloudStats,
-  fetchCloudMatch,
   createCloudMatch,
-  createCloudMatchFromState,
   advanceCloudMatchRound,
-  ensureParticipantInMatch,
-  mergeIncomingTurnsIntoCloudMatch,
-  deleteCloudMatch,
-  archiveCloudMatch,
   streamLivePlayerProgress,
   armTacticalTrap,
-  removeParticipantFromCloudMatch,
   type CloudMatchDocument
 } from './services/matchService';
-import {
-  showTurnFinishedNotification,
-  registerPushServiceWorker
-} from './services/pushNotificationService';
+import { registerPushServiceWorker } from './services/pushNotificationService';
+
+const StatsDashboard = lazy(() =>
+  import('./components/StatsDashboard').then(m => ({ default: m.StatsDashboard }))
+);
+const HistoryView = lazy(() =>
+  import('./components/HistoryView').then(m => ({ default: m.HistoryView }))
+);
+const AdminTopicsDashboard = lazy(() =>
+  import('./components/AdminTopicsDashboard').then(m => ({ default: m.AdminTopicsDashboard }))
+);
+const ChampionsDashboard = lazy(() =>
+  import('./components/ChampionsDashboard').then(m => ({ default: m.ChampionsDashboard }))
+);
 
 export function App() {
   // Navigation & UI state
   const [activeTab, setActiveTab] = useState<'game' | 'stats' | 'competitions' | 'history' | 'champions' | 'admin'>('game');
   const [currentPlayer, setCurrentPlayer] = useState<string>(() => getCurrentProfile());
+
+  const isOnline = useOnlineStatus();
 
   // Modals state - Do NOT auto-open sign-in on first visit
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
@@ -72,13 +61,12 @@ export function App() {
     if (typeof localStorage === 'undefined') return false;
     return !localStorage.getItem('wordrush_seen_how_to_play');
   });
-  const [isMobileWordSheetOpen, setIsMobileWordSheetOpen] = useState<boolean>(false);
   const [showCompetitionModal, setShowCompetitionModal] = useState<boolean>(false);
+  const [competitionInitialMode, setCompetitionInitialMode] = useState<GameMode | undefined>(undefined);
   const [showPassTurnModal, setShowPassTurnModal] = useState<boolean>(false);
   const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false);
   const [showLobbyModal, setShowLobbyModal] = useState<boolean>(false);
   const [showPsychOutModal, setShowPsychOutModal] = useState<boolean>(false);
-  const [seenPsychOutKeys, setSeenPsychOutKeys] = useState<Set<string>>(() => new Set());
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeCloudMatch, setActiveCloudMatch] = useState<CloudMatchDocument | null>(null);
   const [replayContender, setReplayContender] = useState<PlayerTurnResult | null>(null);
@@ -111,61 +99,6 @@ export function App() {
     registerPushServiceWorker();
   }, []);
 
-  // Real-time Firestore sync for active cloud match room with turn notification
-  useEffect(() => {
-    if (!activeCloudMatch?.id) return;
-    const unsub = subscribeToMatch(activeCloudMatch.id, updated => {
-      const sanitized = ensureUniqueTournamentRounds(updated);
-
-      // Notify if opponent finished a round
-      sanitized.rounds.forEach(r => {
-        Object.entries(r.results || {}).forEach(([pName, res]) => {
-          if (pName.toLowerCase() !== currentPlayer.toLowerCase() && res?.completedAt) {
-            showTurnFinishedNotification({
-              opponentName: res.playerName,
-              roundNumber: r.roundNumber,
-              elapsedMs: res.elapsedMs,
-              roomCode: sanitized.roomCode,
-              matchId: sanitized.id,
-              burstSpeedMs: res.burstSpeedMs
-            });
-          }
-        });
-      });
-
-      setActiveCloudMatch(sanitized);
-      setGame(sanitized);
-    });
-    return () => unsub();
-  }, [activeCloudMatch?.id, currentPlayer]);
-
-  // Background subscription to user matches to alert when opponents finish rounds
-  useEffect(() => {
-    if (!currentUser?.uid) return;
-    const unsub = subscribeToUserMatches(currentUser.uid, currentUser.email || '', matches => {
-      matches.forEach(m => {
-        m.rounds.forEach(r => {
-          Object.entries(r.results || {}).forEach(([pName, res]) => {
-            if (pName.toLowerCase() !== currentPlayer.toLowerCase() && res?.completedAt) {
-              // Only alert if completed in the last 24 hours
-              if (Date.now() - res.completedAt < 86400000) {
-                showTurnFinishedNotification({
-                  opponentName: res.playerName,
-                  roundNumber: r.roundNumber,
-                  elapsedMs: res.elapsedMs,
-                  roomCode: m.roomCode,
-                  matchId: m.id,
-                  burstSpeedMs: res.burstSpeedMs
-                });
-              }
-            }
-          });
-        });
-      });
-    });
-    return () => unsub();
-  }, [currentUser?.uid, currentPlayer]);
-
   // Active game state
   const [game, setGame] = useState<SharedGameState>(() => {
     const urlGame = getGameFromUrl();
@@ -190,20 +123,34 @@ export function App() {
     return generateGridBoard(currentRound.gridSize, currentRound.seed, isChaos, currentRound.difficulty || 'pro', currentRound.themeId, currentRound.customWords);
   });
 
-  // Timer & In-game tracking
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [elapsedMs, setElapsedMs] = useState<number>(0);
-  const [countdown, setCountdown] = useState<number | null>(null);
+  // In-game tracking & isolated timer hook (no 60fps App re-renders)
   const [lastBurstSpeedMs, setLastBurstSpeedMs] = useState<number | null>(null);
   const [wordFindTimestamps, setWordFindTimestamps] = useState<number[]>([]);
   const [isCompletedThisRound, setIsCompletedThisRound] = useState<boolean>(false);
   const [isNewBestTime, setIsNewBestTime] = useState<boolean>(false);
 
+  const {
+    isRunning,
+    setIsRunning,
+    isPaused,
+    setIsPaused,
+    elapsedMs,
+    setElapsedMs,
+    countdown,
+    setCountdown,
+    startTimeRef,
+    isSolvingRef,
+    handleTogglePause
+  } = useGameTimer({
+    mode: game.mode,
+    isCompletedThisRound
+  });
+
   // Tactical Warfare State
   const [earnedTrapsCount, setEarnedTrapsCount] = useState<number>(0);
   const [showEarnedAlert, setShowEarnedAlert] = useState<boolean>(false);
   const [activeTrap, setActiveTrap] = useState<TacticalTrap | null>(null);
+  const [activeTrapTimeRemainingSec, setActiveTrapTimeRemainingSec] = useState<number | null>(null);
   const [dodgedTraps, setDodgedTraps] = useState<TacticalTrap[]>([]);
   const [triggeredTraps, setTriggeredTraps] = useState<TacticalTrap[]>([]);
   const [showAmbushModal, setShowAmbushModal] = useState<boolean>(false);
@@ -212,19 +159,11 @@ export function App() {
   const [showLiveSpectatorModal, setShowLiveSpectatorModal] = useState<boolean>(false);
   const [spectatingStream, setSpectatingStream] = useState<LivePlayerStream | null>(null);
 
-  // Timing references
-  const startTimeRef = useRef<number>(0);
-  const timerIntervalRef = useRef<number | null>(null);
+  // Timing & round references
   const lastFindTimeRef = useRef<number>(0);
   const replayLogRef = useRef<{ word: string; atMs: number }[]>([]);
   const earnedTrapsCountRef = useRef<number>(0);
   const activeRoundKeyRef = useRef<string>('');
-  const isSolvingRef = useRef<boolean>(false);
-
-  // Keep isSolvingRef synchronously in sync with live play state
-  useEffect(() => {
-    isSolvingRef.current = isRunning || isPaused || countdown !== null;
-  }, [isRunning, isPaused, countdown]);
 
   // Check if player has already completed this round in loaded state
   useEffect(() => {
@@ -279,158 +218,16 @@ export function App() {
     setBoard(newBoard);
   }, [localRoundIndex, game.id, currentPlayer, currentRound?.seed, currentRound?.themeId, currentRound?.customWords, game.title, game.mode, isRunning, isPaused, countdown, isCompletedThisRound]);
 
-  // Auto-connect to cloud match from URL (#room=... or #game=...) or localStorage
-  useEffect(() => {
-    const attachCloudRoom = async () => {
-      const urlCode = getRoomCodeFromUrl();
-      const urlGame = getGameFromUrl();
-      const candidateCode = urlCode || (urlGame?.id && /^[A-Z0-9]{4,10}$/i.test(urlGame.id) ? urlGame.id : null);
-
-      let targetId = candidateCode;
-      if (!targetId && typeof localStorage !== 'undefined') {
-        targetId = localStorage.getItem('wordrush_active_match_id');
-      }
-
-      if (targetId) {
-        try {
-          let cloudDoc = await fetchCloudMatch(targetId);
-          if (cloudDoc) {
-            cloudDoc = ensureUniqueTournamentRounds(cloudDoc);
-            if (urlGame) {
-              cloudDoc = await mergeIncomingTurnsIntoCloudMatch(cloudDoc, ensureUniqueTournamentRounds(urlGame));
-            }
-            setActiveCloudMatch(cloudDoc);
-            setGame(cloudDoc);
-            const firstUnplayed = cloudDoc.rounds.findIndex(r => !(r.results || {})[currentPlayer.toLowerCase()]);
-            setLocalRoundIndex(firstUnplayed !== -1 ? firstUnplayed : (cloudDoc.currentRoundIndex || 0));
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('wordrush_active_match_id', cloudDoc.id);
-            }
-            if (currentPlayer && currentPlayer.toLowerCase() !== 'player 1') {
-              await ensureParticipantInMatch(cloudDoc.id, currentPlayer, currentUser?.uid);
-            }
-          } else if (urlGame && Object.keys(urlGame.rounds[0]?.results || {}).length > 0) {
-            // Incoming challenge had player results not yet in Firestore -> auto-promote to live Cloud Match!
-            const newCloud = await createCloudMatchFromState(ensureUniqueTournamentRounds(urlGame), currentUser);
-            setActiveCloudMatch(newCloud);
-            setGame(newCloud);
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('wordrush_active_match_id', newCloud.id);
-            }
-          }
-        } catch (err) {
-          console.warn('Failed to auto-attach cloud match:', err);
-        }
-      } else if (urlGame && Object.keys(urlGame.rounds[0]?.results || {}).length > 0) {
-        // Shared challenge link without pre-existing room -> promote to live Cloud Match!
-        try {
-          const newCloud = await createCloudMatchFromState(ensureUniqueTournamentRounds(urlGame), currentUser);
-          setActiveCloudMatch(newCloud);
-          setGame(newCloud);
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem('wordrush_active_match_id', newCloud.id);
-          }
-        } catch (err) {
-          console.warn('Failed to promote challenge to cloud match:', err);
-        }
-      }
-    };
-
-    attachCloudRoom();
-  }, [currentUser?.uid]);
-
-  // Ensure current user is in participants of active match when name or login changes
-  useEffect(() => {
-    if (activeCloudMatch?.id && currentPlayer && currentPlayer.toLowerCase() !== 'player 1') {
-      ensureParticipantInMatch(activeCloudMatch.id, currentPlayer, currentUser?.uid);
-    }
-  }, [activeCloudMatch?.id, currentPlayer, currentUser?.uid]);
-
-  // Handle URL hash changes (when player opens a new share link)
-  useEffect(() => {
-    const handleHashChange = async () => {
-      const urlCode = getRoomCodeFromUrl();
-      const incoming = getGameFromUrl();
-      const candidateCode = urlCode || (incoming?.id && /^[A-Z0-9]{4,10}$/i.test(incoming.id) ? incoming.id : null);
-
-      if (candidateCode) {
-        try {
-          let cloudDoc = await fetchCloudMatch(candidateCode);
-          if (cloudDoc) {
-            cloudDoc = ensureUniqueTournamentRounds(cloudDoc);
-            if (incoming) {
-              cloudDoc = await mergeIncomingTurnsIntoCloudMatch(cloudDoc, ensureUniqueTournamentRounds(incoming));
-            }
-            setActiveCloudMatch(cloudDoc);
-            setGame(cloudDoc);
-            const firstUnplayed = cloudDoc.rounds.findIndex(r => !(r.results || {})[currentPlayer.toLowerCase()]);
-            setLocalRoundIndex(firstUnplayed !== -1 ? firstUnplayed : (cloudDoc.currentRoundIndex || 0));
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('wordrush_active_match_id', cloudDoc.id);
-            }
-            if (currentPlayer && currentPlayer.toLowerCase() !== 'player 1') {
-              await ensureParticipantInMatch(cloudDoc.id, currentPlayer, currentUser?.uid);
-            }
-            setActiveTab('game');
-            return;
-          } else if (incoming && Object.keys(incoming.rounds[0]?.results || {}).length > 0) {
-            // Incoming challenge had player results not yet in Firestore -> auto-promote to live Cloud Match!
-            const newCloud = await createCloudMatchFromState(ensureUniqueTournamentRounds(incoming), currentUser);
-            setActiveCloudMatch(newCloud);
-            setGame(newCloud);
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('wordrush_active_match_id', newCloud.id);
-            }
-            setActiveTab('game');
-            return;
-          }
-        } catch (err) {
-          console.warn('Failed to attach cloud match on hash change:', err);
-        }
-      } else if (incoming && Object.keys(incoming.rounds[0]?.results || {}).length > 0) {
-        try {
-          const newCloud = await createCloudMatchFromState(ensureUniqueTournamentRounds(incoming), currentUser);
-          setActiveCloudMatch(newCloud);
-          setGame(newCloud);
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem('wordrush_active_match_id', newCloud.id);
-          }
-          setActiveTab('game');
-          return;
-        } catch (err) {
-          console.warn('Failed to promote challenge to cloud match:', err);
-        }
-      }
-
-      if (incoming) {
-        setActiveCloudMatch(null);
-        setGame(incoming);
-        setActiveTab('game');
-      }
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [currentPlayer, currentUser?.uid]);
-
-  // Timer ticking loop (disabled in Zen untimed mode)
-  useEffect(() => {
-    if (isRunning && game.mode !== 'zen') {
-      startTimeRef.current = Date.now() - elapsedMs;
-      timerIntervalRef.current = window.setInterval(() => {
-        setElapsedMs(Date.now() - startTimeRef.current);
-      }, 16);
-    } else {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-    }
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-    };
-  }, [isRunning, elapsedMs, game.mode]);
+  // Sync cloud matches, URL share links, and turn notifications
+  useCloudMatchSync({
+    activeCloudMatch,
+    currentPlayer,
+    currentUser,
+    setActiveCloudMatch,
+    setGame,
+    setLocalRoundIndex,
+    setActiveTab
+  });
 
   // Countdown before starting round (3..2..1..GO)
   const startTurnWithCountdown = () => {
@@ -440,6 +237,7 @@ export function App() {
     earnedTrapsCountRef.current = 0;
     setEarnedTrapsCount(0);
     setActiveTrap(null);
+    setActiveTrapTimeRemainingSec(null);
     setDodgedTraps([]);
     setTriggeredTraps([]);
     const interval = window.setInterval(() => {
@@ -447,9 +245,10 @@ export function App() {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
           sounds.playWordFound();
-          setIsRunning(true);
           startTimeRef.current = Date.now();
           lastFindTimeRef.current = 0;
+          setElapsedMs(0);
+          setIsRunning(true);
 
           // Stream live race start
           const matchId = activeCloudMatch?.id || (game.id && /^[A-Z0-9]{4,10}$/i.test(game.id) ? game.id : (typeof localStorage !== 'undefined' ? localStorage.getItem('wordrush_active_match_id') : null));
@@ -473,10 +272,11 @@ export function App() {
     }, 800);
   };
 
-  // Tactical Ambush Evaluation Loop: detonate armed curses at trigger timings
+  // Tactical Ambush Evaluation Loop: polls every 250ms without 60fps App re-renders
   useEffect(() => {
     if (!isRunning || !(game.isTacticsMode || activeCloudMatch?.isTacticsMode)) {
-      if (activeTrap) setActiveTrap(null);
+      setActiveTrap(null);
+      setActiveTrapTimeRemainingSec(null);
       return;
     }
 
@@ -486,43 +286,41 @@ export function App() {
       (t.targetPlayer === 'all' || t.targetPlayer.toLowerCase() === currentPlayer.toLowerCase())
     );
 
-    const detonating = myTraps.find(t =>
-      elapsedMs >= t.triggerAtMs && elapsedMs < (t.triggerAtMs + t.durationMs)
-    );
+    if (myTraps.length === 0) {
+      setActiveTrap(null);
+      setActiveTrapTimeRemainingSec(null);
+      return;
+    }
 
-    if (detonating) {
-      if (activeTrap?.id !== detonating.id) {
-        setActiveTrap(detonating);
-        sounds.playAmbushAlarm();
-        setTriggeredTraps(prev => {
-          if (!prev.some(t => t.id === detonating.id)) {
-            return [...prev, detonating];
+    const evaluate = () => {
+      const nowRel = startTimeRef.current > 0 ? Math.max(0, Date.now() - startTimeRef.current) : 0;
+      const detonating = myTraps.find(t =>
+        nowRel >= t.triggerAtMs && nowRel < (t.triggerAtMs + t.durationMs)
+      );
+
+      if (detonating) {
+        setActiveTrap(prev => {
+          if (prev?.id !== detonating.id) {
+            sounds.playAmbushAlarm();
+            setTriggeredTraps(traps =>
+              traps.some(t => t.id === detonating.id) ? traps : [...traps, detonating]
+            );
+            return detonating;
           }
           return prev;
         });
+        const remainingSec = Math.max(0, Math.ceil((detonating.triggerAtMs + detonating.durationMs - nowRel) / 1000));
+        setActiveTrapTimeRemainingSec(prev => (prev === remainingSec ? prev : remainingSec));
+      } else {
+        setActiveTrap(prev => (prev ? null : prev));
+        setActiveTrapTimeRemainingSec(prev => (prev !== null ? null : prev));
       }
-    } else if (activeTrap) {
-      setActiveTrap(null);
-    }
-  }, [isRunning, elapsedMs, game.isTacticsMode, activeCloudMatch?.isTacticsMode, currentRound?.tacticalTraps, currentPlayer, activeTrap]);
+    };
 
-  // Toggle Pause / Resume for timed games
-  const handleTogglePause = () => {
-    if (game.mode === 'zen' || isCompletedThisRound) return;
-
-    if (isRunning) {
-      // Pause: stop running, record elapsed time accurately
-      setIsRunning(false);
-      setIsPaused(true);
-      sounds.playTileTick();
-    } else if (isPaused) {
-      // Resume: start timer interval again from paused elapsedMs
-      setIsPaused(false);
-      setIsRunning(true);
-      startTimeRef.current = Date.now() - elapsedMs;
-      sounds.playWordFound();
-    }
-  };
+    evaluate();
+    const trapInterval = window.setInterval(evaluate, 250);
+    return () => clearInterval(trapInterval);
+  }, [isRunning, game.isTacticsMode, activeCloudMatch?.isTacticsMode, currentRound?.tacticalTraps, currentPlayer, startTimeRef]);
 
   // Word Found Event Handler
   const handleWordFound = useCallback((wordStr: string) => {
@@ -583,10 +381,11 @@ export function App() {
 
       if (allFound) {
         // Complete the board!
+        const totalElapsed = nowRel;
+        setElapsedMs(totalElapsed);
         setIsRunning(false);
         setIsCompletedThisRound(true);
 
-        const totalElapsed = nowRel;
         const allTimestamps = [...wordFindTimestamps, nowRel];
 
         // Check dodged tactical traps (traps set for me whose trigger time wasn't reached!)
@@ -733,124 +532,6 @@ export function App() {
     }
   };
 
-  // Select a match from Cloud Lobby
-  const handleSelectCloudMatch = async (match: CloudMatchDocument) => {
-    clearUrlHash();
-    const sanitized = ensureUniqueTournamentRounds(match);
-    setActiveCloudMatch(sanitized);
-    setGame(sanitized);
-    const firstUnplayed = sanitized.rounds.findIndex(r => !(r.results || {})[currentPlayer.toLowerCase()]);
-    setLocalRoundIndex(firstUnplayed !== -1 ? firstUnplayed : (sanitized.currentRoundIndex || 0));
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('wordrush_active_match_id', match.id);
-    }
-    if (currentPlayer && currentPlayer.toLowerCase() !== 'player 1') {
-      await ensureParticipantInMatch(match.id, currentPlayer, currentUser?.uid);
-    }
-    activeRoundKeyRef.current = '';
-    setIsRunning(false);
-    setIsCompletedThisRound(false);
-    setElapsedMs(0);
-    setLastBurstSpeedMs(null);
-    setWordFindTimestamps([]);
-    setActiveTab('game');
-  };
-
-  // Leave active cloud match to play solo
-  const handleLeaveCloudMatch = () => {
-    if (window.confirm('Leave this live multiplayer match to play solo? You can re-join anytime from the Match Lobby or with the Room Code.')) {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem('wordrush_active_match_id');
-      }
-      clearUrlHash();
-      setActiveCloudMatch(null);
-      handleStartGame({
-        mode: 'duel',
-        gridSize: 18,
-        difficulty: 'pro',
-        isChaosMode: false
-      });
-    }
-  };
-
-  // Delete active cloud match permanently
-  const handleDeleteCurrentMatch = async () => {
-    if (!activeCloudMatch) return;
-    if (window.confirm(`Permanently delete room "${activeCloudMatch.roomCode || activeCloudMatch.id}"? This will delete the match for all players.`)) {
-      try {
-        const ok = await deleteCloudMatch(activeCloudMatch.id);
-        if (ok) {
-          if (typeof localStorage !== 'undefined') {
-            localStorage.removeItem('wordrush_active_match_id');
-          }
-          clearUrlHash();
-          setActiveCloudMatch(null);
-          handleStartGame({
-            mode: 'duel',
-            gridSize: 18,
-            difficulty: 'pro',
-            isChaosMode: false
-          });
-        } else {
-          alert('Could not delete match. Please try again.');
-        }
-      } catch (err) {
-        console.error('Delete match error:', err);
-        alert('Failed to delete room.');
-      }
-    }
-  };
-
-  // Archive active cloud match to Champions Hall of Fame
-  const handleArchiveCurrentMatch = async () => {
-    if (!activeCloudMatch) return;
-    try {
-      const ok = await archiveCloudMatch(activeCloudMatch.id);
-      if (ok) {
-        sounds.playVictory();
-      } else {
-        alert('Could not archive room. Please try again.');
-      }
-    } catch (err) {
-      console.error('Archive match error:', err);
-      alert('Failed to archive room.');
-    }
-  };
-
-  // Remove a participant from the active match (e.g. ghost players, duplicate profiles from before Google login)
-  const handleRemoveParticipant = async (playerNameToRemove: string) => {
-    try {
-      if (activeCloudMatch?.id) {
-        const updated = await removeParticipantFromCloudMatch(activeCloudMatch.id, playerNameToRemove);
-        if (updated) {
-          const sanitized = ensureUniqueTournamentRounds(updated);
-          setActiveCloudMatch(sanitized);
-          setGame(sanitized);
-        }
-      } else {
-        // Offline / Local game state fallback
-        setGame(prev => {
-          const targetKey = playerNameToRemove.toLowerCase().trim();
-          const updatedParticipants = prev.participants.filter(p => p.toLowerCase().trim() !== targetKey);
-          const updatedRounds = prev.rounds.map(r => {
-            const cleanResults = { ...r.results };
-            delete cleanResults[targetKey];
-            return { ...r, results: cleanResults };
-          });
-          return {
-            ...prev,
-            participants: updatedParticipants,
-            rounds: updatedRounds,
-            lastUpdated: Date.now()
-          };
-        });
-      }
-    } catch (err) {
-      console.warn('Failed to remove participant:', err);
-      alert(`Could not remove ${playerNameToRemove}. Please try again.`);
-    }
-  };
-
   // Launch a new local game or competition
   const handleStartGame = async (options: {
     mode: GameMode;
@@ -914,6 +595,29 @@ export function App() {
       }
     }
   };
+
+  const {
+    handleSelectCloudMatch,
+    handleLeaveCloudMatch,
+    handleDeleteCurrentMatch,
+    handleArchiveCurrentMatch,
+    handleRemoveParticipant
+  } = useCloudMatchActions({
+    activeCloudMatch,
+    currentPlayer,
+    currentUser,
+    activeRoundKeyRef,
+    setActiveCloudMatch,
+    setGame,
+    setLocalRoundIndex,
+    setIsRunning,
+    setIsCompletedThisRound,
+    setElapsedMs,
+    setLastBurstSpeedMs,
+    setWordFindTimestamps,
+    setActiveTab,
+    onStartGame: handleStartGame
+  });
 
   // Advance to next round in a Series
   const handleNextRound = async () => {
@@ -1003,10 +707,6 @@ export function App() {
     return liveObj || spectatingStream;
   }, [spectatingStream, activeCloudMatch?.liveStreams]);
 
-  const activeTrapTimeRemainingSec = activeTrap
-    ? Math.max(0, Math.ceil((activeTrap.triggerAtMs + activeTrap.durationMs - elapsedMs) / 1000))
-    : null;
-
   // Local Pass & Play on same device
   const handleLocalPassTurn = (nextPlayerName: string) => {
     setCurrentProfile(nextPlayerName);
@@ -1049,29 +749,6 @@ export function App() {
     ? Math.min(...opponentsList.map(o => o.elapsedMs))
     : null;
 
-  // Auto-pop Psych-Out modal when joining/viewing a round where opponents have set benchmarks
-  useEffect(() => {
-    if (isRunning || isCompletedThisRound || countdown !== null || activeTab !== 'game') {
-      return;
-    }
-
-    if (!currentRound || !currentRound.results) return;
-
-    const myResult = currentRound.results[currentPlayer.toLowerCase()];
-    if (myResult) return; // Current player has already played this round
-
-    if (opponentsList.length === 0) return; // No opponent has played this round yet
-
-    // Key uniquely identifies this round and opponent benchmark state
-    const leader = opponentsList[0];
-    const psychKey = `${game.id}_r${localRoundIndex}_${leader.playerName}_${leader.elapsedMs}`;
-
-    if (!seenPsychOutKeys.has(psychKey)) {
-      setSeenPsychOutKeys(prev => new Set(prev).add(psychKey));
-      setShowPsychOutModal(true);
-    }
-  }, [game.id, localRoundIndex, currentPlayer, currentRound, opponentsList, isRunning, isCompletedThisRound, countdown, activeTab, seenPsychOutKeys]);
-
   return (
     <div className="min-h-screen bg-dark-950 text-slate-100 flex flex-col">
       {/* Top Navigation & Profile Header */}
@@ -1081,518 +758,215 @@ export function App() {
         currentPlayer={currentPlayer}
         currentUser={currentUser}
         onOpenProfile={() => setShowProfileModal(true)}
-        onOpenCompetition={() => setShowCompetitionModal(true)}
+        onOpenCompetition={() => {
+          setCompetitionInitialMode(undefined);
+          setShowCompetitionModal(true);
+        }}
         onOpenLobby={() => setShowLobbyModal(true)}
         isZenMode={game.mode === 'zen'}
       />
 
+      {/* Non-blocking Offline Indicator */}
+      {!isOnline && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="w-full bg-amber-500/15 border-b border-amber-500/30 text-amber-200 px-3 py-1.5 text-xs font-medium flex items-center justify-center gap-2"
+        >
+          <WifiOff className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>You&apos;re offline â€” playing locally</span>
+        </div>
+      )}
+
+
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-1.5 sm:p-4 flex flex-col justify-start">
         {activeTab === 'stats' ? (
-          <StatsDashboard currentPlayer={currentPlayer} />
+          <Suspense fallback={<div className="p-8 text-center text-sm text-slate-400">Loading stats...</div>}>
+            <StatsDashboard currentPlayer={currentPlayer} />
+          </Suspense>
         ) : activeTab === 'history' ? (
-          <HistoryView currentPlayer={currentPlayer} />
+          <Suspense fallback={<div className="p-8 text-center text-sm text-slate-400">Loading history...</div>}>
+            <HistoryView currentPlayer={currentPlayer} />
+          </Suspense>
         ) : activeTab === 'admin' ? (
-          <AdminTopicsDashboard
-            onPlayTopic={(themeId, gridSize) => {
-              handleStartGame({
-                mode: 'duel',
-                gridSize,
-                themeId
-              });
-              setActiveTab('game');
-            }}
-            onClose={() => setActiveTab('game')}
-          />
-        ) : activeTab === 'champions' ? (
-          <ChampionsDashboard
-            currentPlayer={currentPlayer}
-            onOpenLobby={() => setShowLobbyModal(true)}
-            onSelectMatchToPlay={match => {
-              handleSelectCloudMatch(match);
-              setActiveTab('game');
-            }}
-            onWatchReplay={(round, contender) => {
-              const isChaos = Boolean(round.isChaosMode || round.themeId === 'chaos' || game.isChaosMode || game.title?.includes('Chaos'));
-              const replayBoard = generateGridBoard(
-                round.gridSize,
-                round.seed,
-                isChaos,
-                round.difficulty || 'pro',
-                round.themeId,
-                round.customWords
-              );
-              setBoard(replayBoard);
-              setReplayContender(contender);
-            }}
-          />
-        ) : (
-          /* GAME VIEW */
-          <div className="flex flex-col flex-1">
-            {/* Live Cloud Match Hub (Real-time Turn-based / Series Progression) */}
-            {activeCloudMatch ? (
-              <CloudMatchHub
-                match={activeCloudMatch}
-                currentPlayer={currentPlayer}
-                currentRoundIndex={localRoundIndex}
-                onSelectRound={idx => setLocalRoundIndex(idx)}
-                onStartTurn={startTurnWithCountdown}
-                onNextRound={handleNextRound}
-                onLeaveMatch={handleLeaveCloudMatch}
-                onDeleteMatch={handleDeleteCurrentMatch}
-                onArchiveMatch={handleArchiveCurrentMatch}
-                onViewChampions={() => setActiveTab('champions')}
-                onWatchReplay={contender => setReplayContender(contender)}
-                onOpenPsychOut={() => setShowPsychOutModal(true)}
-                onWatchLive={stream => {
-                  setSpectatingStream(stream);
-                  setShowLiveSpectatorModal(true);
-                }}
-                onRemoveParticipant={handleRemoveParticipant}
-                isRunning={isRunning}
-                isPaused={isPaused}
-                isCompletedThisRound={isCompletedThisRound}
-              />
-            ) : opponentsList.length > 0 && !isRunning ? (
-              /* Local / Offline Share Link Challenge Banner */
-              <div className="w-full mx-auto mb-3 p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <Swords className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span>
-                    <b>Multiplayer Match:</b> Competing against{' '}
-                    <span className="text-cyan-300 font-semibold">
-                      {opponentsList.map(o => o.playerName).join(', ')}
-                    </span>
-                    {bestOpponentTime && (
-                      <span className="text-slate-400 ml-1">
-                        (Target time to beat: <b>{formatMs(bestOpponentTime)}</b>)
-                      </span>
-                    )}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowPsychOutModal(true)}
-                    className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-                    title="View opponent benchmark psych stats"
-                  >
-                    <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse" />
-                    <span>Psych-Out Stats</span>
-                  </button>
-                  {opponentsList[0] && (
-                    <button
-                      onClick={() => setReplayContender(opponentsList[0])}
-                      className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold flex items-center gap-1 transition-all"
-                      title={`Watch high-speed replay of ${opponentsList[0].playerName}`}
-                    >
-                      <Zap className="w-3.5 h-3.5 text-cyan-400 fill-cyan-400" />
-                      <span>Replay {opponentsList[0].playerName}</span>
-                    </button>
-                  )}
-                  {isCompletedThisRound ? (
-                    <button
-                      onClick={() => setShowPassTurnModal(true)}
-                      className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold flex items-center gap-1"
-                    >
-                      <Trophy className="w-3.5 h-3.5" />
-                      <span>Standings</span>
-                    </button>
-                  ) : (
-                    <span className="text-amber-400 font-bold">Your turn! Ready?</span>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            {/* Stopwatch & Burst HUD */}
-            <TimerDisplay
-              elapsedMs={elapsedMs}
-              isRunning={isRunning}
-              totalWords={totalWords}
-              foundWordsCount={foundWordsCount}
-              lastBurstSpeedMs={lastBurstSpeedMs}
-              bestTimeMs={career.bestTimeMs}
-              isUntimed={game.mode === 'zen'}
-              isPaused={isPaused}
-              onTogglePause={handleTogglePause}
+          <Suspense fallback={<div className="p-8 text-center text-sm text-slate-400">Loading topic studio...</div>}>
+            <AdminTopicsDashboard
+              onPlayTopic={(themeId, gridSize) => {
+                handleStartGame({
+                  mode: 'duel',
+                  gridSize,
+                  themeId
+                });
+                setActiveTab('game');
+              }}
+              onClose={() => setActiveTab('game')}
             />
-
-            {/* Mobile Compact Word List Strip ("N left") */}
-            <div className="lg:hidden w-full mb-2.5">
-              <button
-                onClick={() => setIsMobileWordSheetOpen(true)}
-                className="w-full glass-panel border border-slate-800/90 rounded-2xl p-2.5 px-3 flex items-center justify-between text-left hover:border-slate-700 transition-all cursor-pointer active:scale-[0.99] shadow-sm"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-200 truncate">
-                        {game.mode === 'zen' ? board.theme : (isPaused || (!isRunning && !isCompletedThisRound)) ? 'Target Words' : board.theme}
-                      </span>
-                      <span className="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
-                        {totalWords - foundWordsCount} left
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 text-xs text-slate-400 shrink-0 font-medium">
-                  <span>View List</span>
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </div>
-              </button>
-            </div>
-
-            {/* Mobile Collapsible Sheet for Word List */}
-            {isMobileWordSheetOpen && (
-              <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-xs animate-fade-in lg:hidden">
-                <div 
-                  className="fixed inset-0" 
-                  onClick={() => setIsMobileWordSheetOpen(false)}
-                />
-                <div className="relative z-10 glass-panel bg-dark-900 border-t border-slate-700/80 rounded-t-3xl p-4 max-h-[80vh] flex flex-col shadow-2xl animate-slide-up">
-                  <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-3 shrink-0" />
-                  <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800 shrink-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-sm font-bold text-slate-100 truncate">{board.theme}</span>
-                      <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-bold shrink-0">
-                        {totalWords - foundWordsCount} left
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setIsMobileWordSheetOpen(false)}
-                      className="p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
-                      aria-label="Close word list sheet"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="overflow-y-auto flex-1 pb-4">
-                    <WordBank
-                      words={board.words}
-                      theme={board.theme}
-                      themeDescription={board.themeDescription}
-                      isCovered={game.mode === 'zen' ? false : (isPaused || (!isRunning && !isCompletedThisRound))}
-                      isGlitched={activeTrap?.type === 'wordlist_glitch'}
-                      isSheet={true}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Start Turn Callout (only for timed competitive modes when not in active cloud match) */}
-            {game.mode !== 'zen' && !isRunning && !isPaused && !isCompletedThisRound && !activeCloudMatch && (
-              <div className="w-full mx-auto mb-3 p-4 rounded-2xl bg-dark-900 border border-emerald-500/40 text-center shadow-xl shadow-emerald-500/5">
-                <div className="text-sm font-bold text-slate-200 mb-1">
-                  Ready to race, {currentPlayer}?
-                </div>
-                <p className="text-xs text-slate-400 mb-3">
-                  Find all {totalWords} words as fast as possible. The clock tracks every millisecond!
-                </p>
-                <button
-                  onClick={startTurnWithCountdown}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-dark-950 font-black text-sm inline-flex items-center gap-2 shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                >
-                  <Play className="w-4 h-4 fill-dark-950" />
-                  <span>Start Turn (3.. 2.. 1..)</span>
-                </button>
-              </div>
-            )}
-
-            {/* Countdown Overlay (only for timed competitive modes) */}
-            {countdown !== null && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm pointer-events-none">
-                <div className="text-center animate-bounce-subtle">
-                  <div className="font-mono font-black text-7xl sm:text-9xl text-emerald-400 drop-shadow-2xl">
-                    {countdown}
-                  </div>
-                  <div className="text-sm uppercase font-mono tracking-widest text-slate-300 mt-2">
-                    Get Ready...
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Tactical Warfare Ambush HUD */}
-            {(game.isTacticsMode || activeCloudMatch?.isTacticsMode) && (
-              <TacticalHUD
-                activeTrap={activeTrap}
-                activeTrapTimeRemainingSec={activeTrapTimeRemainingSec}
-                earnedTrapAlert={showEarnedAlert}
-                dodgedTrapsCount={dodgedTraps.length}
-              />
-            )}
-
-            {/* Main Game Arena: Left WordBank Sidebar + Large Board on Desktop */}
-            <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-3 sm:gap-6 w-full">
-              {/* Target Words Bank (Desktop sidebar: hidden on mobile, left sidebar on desktop) */}
-              <div className="hidden lg:block w-72 xl:w-80 shrink-0">
-                <WordBank
-                  words={board.words}
-                  theme={board.theme}
-                  themeDescription={board.themeDescription}
-                  isCovered={game.mode === 'zen' ? false : (isPaused || (!isRunning && !isCompletedThisRound))}
-                  isGlitched={activeTrap?.type === 'wordlist_glitch'}
-                />
-              </div>
-
-              {/* Interactive Grid Canvas (Takes full space) */}
-              <div className="flex-1 flex justify-center w-full">
-                <WordGrid
-                  board={board}
-                  onWordFound={handleWordFound}
-                  disabled={game.mode === 'zen' ? isCompletedThisRound : (!isRunning || isPaused || isCompletedThisRound)}
-                  isCovered={game.mode === 'zen' ? false : (!isRunning && !isPaused && !isCompletedThisRound)}
-                  isPaused={isPaused}
-                  onStartTurn={startTurnWithCountdown}
-                  onResumeTurn={handleTogglePause}
-                  activeCloakedLetter={activeTrap?.type === 'phantom_letter' ? activeTrap.letter : undefined}
-                  activeMistQuadrant={activeTrap?.type === 'dense_mist' ? activeTrap.quadrant : undefined}
-                />
-              </div>
-            </div>
-
-            {/* Bottom Controls Bar */}
-            <div className="w-full mx-auto mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowCompetitionModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-dark-900 border border-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Competition Setup</span>
-                </button>
-
-                {activeCloudMatch ? (
-                  <button
-                    onClick={handleLeaveCloudMatch}
-                    className="px-3 py-1.5 rounded-xl bg-dark-900 hover:bg-rose-500/20 border border-slate-800 hover:border-rose-500/40 text-slate-300 hover:text-rose-300 font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                    title="Leave this multiplayer room to play solo"
-                  >
-                    <LogOut className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Exit Room to Solo</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleStartGame({
-                      mode: game.mode === 'zen' ? 'zen' : 'duel',
-                      gridSize: game.gridSize || 18,
-                      difficulty: game.difficulty || 'pro',
-                      isChaosMode: false
-                    })}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                    title="Generate a brand new random puzzle board immediately"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Roll New Puzzle</span>
-                  </button>
-                )}
-
-                {isCompletedThisRound && (
-                  <button
-                    onClick={() => setShowPassTurnModal(true)}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold flex items-center gap-1.5 hover:bg-emerald-500/30 transition-all cursor-pointer"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>Pass Turn (Farkle Style)</span>
-                  </button>
-                )}
-              </div>
-
-              <div className="text-slate-500 font-mono text-[11px] flex items-center gap-1">
-                {game.mode === 'zen' ? (
-                  <span className="text-teal-400 flex items-center gap-1 font-semibold">
-                    <Coffee className="w-3.5 h-3.5" />
-                    <span>Zen Solitaire (Untimed)</span>
-                  </span>
-                ) : game.mode === 'series' ? (
-                  <span>Series Round {localRoundIndex + 1} of {game.totalRounds}</span>
-                ) : game.mode === 'weekly' ? (
-                  <span>Weekly Competition</span>
-                ) : (
-                  <span>Quick Duel</span>
-                )}
-              </div>
-            </div>
-          </div>
+          </Suspense>
+        ) : activeTab === 'champions' ? (
+          <Suspense fallback={<div className="p-8 text-center text-sm text-slate-400">Loading champions...</div>}>
+            <ChampionsDashboard
+              currentPlayer={currentPlayer}
+              onOpenLobby={() => setShowLobbyModal(true)}
+              onSelectMatchToPlay={match => {
+                handleSelectCloudMatch(match);
+                setActiveTab('game');
+              }}
+              onWatchReplay={(round, contender) => {
+                const isChaos = Boolean(round.isChaosMode || round.themeId === 'chaos' || game.isChaosMode || game.title?.includes('Chaos'));
+                const replayBoard = generateGridBoard(
+                  round.gridSize,
+                  round.seed,
+                  isChaos,
+                  round.difficulty || 'pro',
+                  round.themeId,
+                  round.customWords
+                );
+                setBoard(replayBoard);
+                setReplayContender(contender);
+              }}
+            />
+          </Suspense>
+        ) : (
+          <GameScreen
+            game={game}
+            board={board}
+            activeCloudMatch={activeCloudMatch}
+            currentPlayer={currentPlayer}
+            localRoundIndex={localRoundIndex}
+            elapsedMs={elapsedMs}
+            startTimeRef={startTimeRef}
+            isRunning={isRunning}
+            isPaused={isPaused}
+            countdown={countdown}
+            isCompletedThisRound={isCompletedThisRound}
+            foundWordsCount={foundWordsCount}
+            totalWords={totalWords}
+            lastBurstSpeedMs={lastBurstSpeedMs}
+            bestTimeMs={career.bestTimeMs}
+            opponentsList={opponentsList}
+            bestOpponentTime={bestOpponentTime}
+            activeTrap={activeTrap}
+            activeTrapTimeRemainingSec={activeTrapTimeRemainingSec}
+            showEarnedAlert={showEarnedAlert}
+            dodgedTrapsCount={dodgedTraps.length}
+            onSelectRound={idx => setLocalRoundIndex(idx)}
+            onStartTurn={startTurnWithCountdown}
+            onTogglePause={handleTogglePause}
+            onWordFound={handleWordFound}
+            onNextRound={handleNextRound}
+            onLeaveCloudMatch={handleLeaveCloudMatch}
+            onDeleteCurrentMatch={handleDeleteCurrentMatch}
+            onArchiveCurrentMatch={handleArchiveCurrentMatch}
+            onViewChampions={() => setActiveTab('champions')}
+            onWatchReplay={contender => setReplayContender(contender)}
+            onOpenPsychOut={() => setShowPsychOutModal(true)}
+            onWatchLive={stream => {
+              setSpectatingStream(stream);
+              setShowLiveSpectatorModal(true);
+            }}
+            onRemoveParticipant={handleRemoveParticipant}
+            onOpenCompetition={initialMode => {
+              setCompetitionInitialMode(initialMode);
+              setShowCompetitionModal(true);
+            }}
+            onOpenPassTurn={() => setShowPassTurnModal(true)}
+            onStartGame={handleStartGame}
+          />
         )}
       </main>
 
-      {/* Pass Turn Modal (Farkle Style Sharing) */}
-      {showPassTurnModal && (
-        <PassTurnModal
-          game={game}
-          currentPlayer={currentPlayer}
-          currentTurnResult={currentTurnResult}
-          onClose={() => setShowPassTurnModal(false)}
-          onNextRound={handleNextRound}
-          onLocalPassTurn={handleLocalPassTurn}
-          onWatchReplay={contender => setReplayContender(contender)}
-        />
-      )}
-
-      {/* Victory Celebration Modal */}
-      {showVictoryModal && (
-        <VictoryModal
-          elapsedMs={elapsedMs}
-          burstSpeedMs={lastBurstSpeedMs || 0}
-          isNewBest={isNewBestTime}
-          theme={currentRound.theme}
-          gridSize={currentRound.gridSize}
-          hasNextRound={localRoundIndex < game.totalRounds - 1}
-          nextRoundNumber={localRoundIndex + 2}
-          onNextRound={handleNextRound}
-          roomCode={activeCloudMatch?.roomCode || activeCloudMatch?.id}
-          onPassTurn={() => {
-            setShowVictoryModal(false);
-            setShowPassTurnModal(true);
-          }}
-          onPlayAgain={() => {
-            setShowVictoryModal(false);
-            if (localRoundIndex < game.totalRounds - 1) {
-              handleNextRound();
-            } else if (!activeCloudMatch) {
-              handleStartGame({
-                mode: 'duel',
-                gridSize: currentRound.gridSize,
-                isChaosMode: false
-              });
-            }
-          }}
-          onWatchReplay={() => {
-            if (currentTurnResult) {
-              setReplayContender(currentTurnResult);
-            }
-          }}
-          isUntimed={game.mode === 'zen'}
-        />
-      )}
-
-      {/* High-Speed Round Replay Modal */}
-      {replayContender && (
-        <ReplayModal
-          board={board}
-          turnResult={replayContender}
-          onClose={() => setReplayContender(null)}
-        />
-      )}
-
-      {/* Competition & Series Setup Modal */}
-      <CompetitionModal
-        isOpen={showCompetitionModal}
-        onClose={() => setShowCompetitionModal(false)}
-        onStartGame={handleStartGame}
-        onOpenAdmin={() => setActiveTab('admin')}
-      />
-
-      {/* Player Profile Switcher & Google Auth Modal */}
-      <PlayerProfileModal
-        isOpen={showProfileModal}
+      <AppModals
+        game={game}
+        board={board}
+        currentRound={currentRound}
+        localRoundIndex={localRoundIndex}
+        activeCloudMatch={activeCloudMatch}
         currentPlayer={currentPlayer}
         currentUser={currentUser}
+        elapsedMs={elapsedMs}
+        lastBurstSpeedMs={lastBurstSpeedMs}
+        isNewBestTime={isNewBestTime}
+        currentTurnResult={currentTurnResult}
+        opponentsList={opponentsList}
+        availableLetters={availableLetters}
+        tournamentOpponents={tournamentOpponents}
+        earnedTrapsCount={earnedTrapsCount}
+        spectatingStream={spectatingStream}
+        spectatorBoard={spectatorBoard}
+        liveStreamData={liveStreamData}
+        replayContender={replayContender}
+        showPassTurnModal={showPassTurnModal}
+        showVictoryModal={showVictoryModal}
+        showCompetitionModal={showCompetitionModal}
+        competitionInitialMode={competitionInitialMode}
+        showProfileModal={showProfileModal}
+        showLobbyModal={showLobbyModal}
+        showPsychOutModal={showPsychOutModal}
+        showAmbushModal={showAmbushModal}
+        showLiveSpectatorModal={showLiveSpectatorModal}
+        showHowToPlay={showHowToPlay}
+        onClosePassTurn={() => setShowPassTurnModal(false)}
+        onCloseVictory={() => setShowVictoryModal(false)}
+        onPassTurnFromVictory={() => {
+          setShowVictoryModal(false);
+          setShowPassTurnModal(true);
+        }}
+        onPlayAgainFromVictory={() => {
+          setShowVictoryModal(false);
+          if (localRoundIndex < game.totalRounds - 1) {
+            handleNextRound();
+          } else if (!activeCloudMatch) {
+            handleStartGame({
+              mode: game.mode === 'zen' ? 'zen' : 'duel',
+              gridSize: currentRound.gridSize,
+              isChaosMode: false
+            });
+          }
+        }}
+        onNextRoundFromVictory={() => {
+          setShowVictoryModal(false);
+          handleNextRound();
+        }}
+        onWatchReplay={contender => setReplayContender(contender)}
+        onWatchMyReplayFromVictory={() => {
+          if (currentTurnResult) {
+            setReplayContender(currentTurnResult);
+          }
+        }}
+        onCloseCompetition={() => setShowCompetitionModal(false)}
+        onStartGame={handleStartGame}
+        onOpenAdmin={() => setActiveTab('admin')}
         onGoogleLogin={handleGoogleLogin}
         onGoogleLogout={handleGoogleLogout}
         onSaveProfile={handleSaveProfile}
-        onClose={() => setShowProfileModal(false)}
-      />
-
-      {/* Cloud Match Rooms & Live Lobby Modal */}
-      <LiveLobbyModal
-        isOpen={showLobbyModal}
-        onClose={() => setShowLobbyModal(false)}
-        currentUser={currentUser}
-        onGoogleLogin={handleGoogleLogin}
-        onGoogleLogout={handleGoogleLogout}
-        onSelectMatch={handleSelectCloudMatch}
+        onCloseProfile={() => setShowProfileModal(false)}
+        onCloseLobby={() => setShowLobbyModal(false)}
+        onSelectCloudMatch={handleSelectCloudMatch}
         onOpenChampions={() => setActiveTab('champions')}
-      />
-
-      {/* Opponent Psych-Out Benchmark Modal */}
-      <PsychOutModal
-        isOpen={showPsychOutModal}
-        onClose={() => setShowPsychOutModal(false)}
-        onStartTurn={() => {
+        onClosePsychOut={() => setShowPsychOutModal(false)}
+        onStartTurnFromPsychOut={() => {
           setShowPsychOutModal(false);
           startTurnWithCountdown();
         }}
-        onWatchReplay={contender => {
+        onWatchReplayFromPsychOut={contender => {
           setShowPsychOutModal(false);
           setReplayContender(contender);
         }}
-        roundNumber={localRoundIndex + 1}
-        totalRounds={game.totalRounds}
-        themeName={currentRound.theme}
-        gridSize={currentRound.gridSize}
-        opponentResults={opponentsList}
-        currentPlayer={currentPlayer}
-        roomCode={activeCloudMatch?.roomCode || activeCloudMatch?.id || (game.id && /^[A-Z0-9]{4,10}$/i.test(game.id) ? game.id : undefined)}
-      />
-
-      {/* Tactical Ambush Deployment Modal */}
-      <TacticalAmbushModal
-        isOpen={showAmbushModal}
-        onClose={() => {
+        onCloseAmbush={() => {
           setShowAmbushModal(false);
           sounds.playVictory();
           setShowVictoryModal(true);
         }}
         onDeployTrap={handleDeployTrap}
-        availableLetters={availableLetters}
-        opponents={tournamentOpponents}
-        roundNumber={localRoundIndex + 1}
-        earnedTrapsCount={earnedTrapsCount}
-        currentPlayer={currentPlayer}
+        onCloseLiveSpectator={() => {
+          setShowLiveSpectatorModal(false);
+          setSpectatingStream(null);
+        }}
+        onNextRound={handleNextRound}
+        onLocalPassTurn={handleLocalPassTurn}
+        onDismissHowToPlay={handleDismissHowToPlay}
       />
-
-      {/* Live Spectator Arena Modal */}
-      {spectatingStream && spectatorBoard && (
-        <LiveSpectatorModal
-          isOpen={showLiveSpectatorModal}
-          onClose={() => {
-            setShowLiveSpectatorModal(false);
-            setSpectatingStream(null);
-          }}
-          stream={liveStreamData || spectatingStream}
-          board={spectatorBoard}
-          themeName={currentRound.theme}
-          themeDescription={currentRound.theme}
-          roundNumber={(liveStreamData || spectatingStream).roundIndex + 1}
-          totalRounds={activeCloudMatch?.totalRounds || game.totalRounds}
-        />
-      )}
-
-      {/* First-Visit How-To-Play Card */}
-      {showHowToPlay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="glass-panel max-w-sm w-full p-6 rounded-3xl border border-emerald-500/40 shadow-2xl text-center flex flex-col items-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-400 p-0.5 shadow-xl shadow-emerald-500/20 mb-4 flex items-center justify-center">
-              <div className="w-full h-full bg-dark-900 rounded-[14px] flex items-center justify-center">
-                <Swords className="w-7 h-7 text-emerald-400" />
-              </div>
-            </div>
-            <h2 className="text-xl font-black text-white tracking-tight mb-2">
-              Welcome to WordRush!
-            </h2>
-            <p className="text-sm text-slate-300 leading-relaxed mb-6 font-medium">
-              Drag across letters to find the words. Fastest time wins.
-            </p>
-            <button
-              onClick={handleDismissHowToPlay}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-dark-950 font-black text-base shadow-xl shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              <Play className="w-5 h-5 fill-dark-950" />
-              <span>Play</span>
-            </button>
-            <p className="text-[11px] text-slate-400 mt-4">
-              Sign-in is available anytime from the profile button in the top bar.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

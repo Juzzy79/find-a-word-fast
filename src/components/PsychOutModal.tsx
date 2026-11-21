@@ -90,20 +90,20 @@ export const PsychOutModal: React.FC<PsychOutModalProps> = ({
 
   // Generate dynamic psychological banter
   let threatTitle = 'Target Benchmark Set!';
-  let threatBadge = '⚡ High Pace';
+  let threatBadge = 'High Pace';
   let psychQuote = `"${leader.playerName} clocked a clean ${formatMs(leader.elapsedMs)} run. Ready to test your speed?"`;
 
   if (bestBurstMs > 0 && bestBurstMs <= 1100) {
     threatTitle = 'Sub-Second Lightning Burst!';
-    threatBadge = '🔥 Inhuman Reflexes';
+    threatBadge = 'Inhuman Reflexes';
     psychQuote = `"${leader.playerName} snatched words just ${bestBurstSec}s apart! Think you can top that, ${currentPlayer}?"`;
   } else if (bestBurstMs > 0 && bestBurstMs <= 1900) {
     threatTitle = 'Rapid-Fire Word Flurry!';
-    threatBadge = '⚡ Rapid Fire';
+    threatBadge = 'Rapid Fire';
     psychQuote = `"${leader.playerName} chained consecutive words in ${bestBurstSec}s flat. Can your fingers move faster, ${currentPlayer}?"`;
   } else if (leader.elapsedMs <= 38000) {
     threatTitle = 'Blistering Speed Run!';
-    threatBadge = '🚀 Speed Demon';
+    threatBadge = 'Speed Demon';
     psychQuote = `"${leader.playerName} torched the entire ${gridSize}x${gridSize} grid in ${formatMs(leader.elapsedMs)}. Bring the heat, ${currentPlayer}!"`;
   } else {
     psychQuote = `"${leader.playerName} set the opening bar with ${formatMs(leader.elapsedMs)}. The pressure is on you, ${currentPlayer}!"`;
@@ -133,7 +133,7 @@ export const PsychOutModal: React.FC<PsychOutModalProps> = ({
                   <span>Psych-Out Alert</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 border border-amber-500/30 text-amber-300">
                   {threatBadge}
                 </span>
               </div>
@@ -183,7 +183,7 @@ export const PsychOutModal: React.FC<PsychOutModalProps> = ({
                     </span>
                     <Crown className="w-4 h-4 text-amber-400 fill-amber-400" />
                   </div>
-                  <div className="text-[11px] text-amber-300/90 font-medium">
+                  <div className="text-xs text-amber-300/90 font-medium">
                     Current Round Leader
                   </div>
                 </div>
@@ -205,42 +205,42 @@ export const PsychOutModal: React.FC<PsychOutModalProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {/* Stat 1: Time to Beat */}
               <div className="p-3 rounded-xl bg-dark-950/80 border border-slate-800 text-center">
-                <div className="flex items-center justify-center gap-1 text-[11px] text-slate-400 font-semibold mb-0.5">
+                <div className="flex items-center justify-center gap-1 text-xs text-slate-400 font-semibold mb-0.5">
                   <Clock className="w-3 h-3 text-cyan-400" />
                   <span>Time to Beat</span>
                 </div>
                 <div className="font-mono font-black text-lg sm:text-xl text-emerald-400">
                   {formatMs(leader.elapsedMs)}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">
+                <div className="text-xs text-slate-400 mt-0.5">
                   100% Cleared
                 </div>
               </div>
 
               {/* Stat 2: Fastest Rapid Burst Combo */}
               <div className="p-3 rounded-xl bg-dark-950/80 border border-amber-500/30 text-center relative overflow-hidden">
-                <div className="flex items-center justify-center gap-1 text-[11px] text-amber-300 font-semibold mb-0.5">
+                <div className="flex items-center justify-center gap-1 text-xs text-amber-300 font-semibold mb-0.5">
                   <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
                   <span>Fastest Combo</span>
                 </div>
                 <div className="font-mono font-black text-lg sm:text-xl text-amber-300">
                   {bestBurstSec ? `${bestBurstSec}s` : '--'}
                 </div>
-                <div className="text-[10px] text-amber-400/80 mt-0.5">
+                <div className="text-xs text-amber-400/80 mt-0.5">
                   Between Words
                 </div>
               </div>
 
               {/* Stat 3: Average Word Pace */}
               <div className="col-span-2 sm:col-span-1 p-3 rounded-xl bg-dark-950/80 border border-slate-800 text-center">
-                <div className="flex items-center justify-center gap-1 text-[11px] text-slate-400 font-semibold mb-0.5">
+                <div className="flex items-center justify-center gap-1 text-xs text-slate-400 font-semibold mb-0.5">
                   <TrendingUp className="w-3 h-3 text-cyan-400" />
                   <span>Word Pace</span>
                 </div>
                 <div className="font-mono font-black text-lg sm:text-xl text-cyan-300">
                   {avgPaceSec ? `${avgPaceSec}s` : '--'}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">
+                <div className="text-xs text-slate-400 mt-0.5">
                   Per Word Avg
                 </div>
               </div>
@@ -288,8 +288,9 @@ export const PsychOutModal: React.FC<PsychOutModalProps> = ({
                     <div className="flex items-center gap-3 font-mono">
                       <span className="text-emerald-400 font-bold">{formatMs(opp.elapsedMs)}</span>
                       {opp.burstSpeedMs > 0 && (
-                        <span className="text-[10px] text-amber-400">
-                          ⚡ {formatSecondsShort(opp.burstSpeedMs)}
+                        <span className="text-xs text-amber-400 inline-flex items-center gap-0.5">
+                          <Zap className="w-3 h-3 fill-amber-400" />
+                          <span>{formatSecondsShort(opp.burstSpeedMs)}</span>
                         </span>
                       )}
                     </div>
@@ -315,7 +316,7 @@ export const PsychOutModal: React.FC<PsychOutModalProps> = ({
             className="w-full sm:flex-1 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-dark-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 hover:opacity-95 hover:scale-[1.02] active:scale-98 transition-all cursor-pointer"
           >
             <Play className="w-4 h-4 fill-dark-950" />
-            <span>I'm Ready — Start Turn! 🚀</span>
+            <span>I&apos;m Ready — Start Turn!</span>
           </button>
         </div>
       </div>

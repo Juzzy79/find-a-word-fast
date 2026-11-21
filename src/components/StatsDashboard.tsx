@@ -165,10 +165,10 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
           <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-100">
             {stats.puzzlesCompleted}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1 flex flex-wrap items-center gap-1.5">
+          <div className="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-1.5">
             <span>{stats.totalWordsFound} words found</span>
             {(stats.gamesByMode.zen ?? 0) > 0 && (
-              <span className="text-teal-400 font-mono text-[10px] bg-teal-500/15 px-1.5 py-0.5 rounded border border-teal-500/30 flex items-center gap-1">
+              <span className="text-teal-400 font-mono text-xs bg-teal-500/15 px-1.5 py-0.5 rounded border border-teal-500/30 flex items-center gap-1">
                 <Coffee className="w-3 h-3" />
                 <span>{stats.gamesByMode.zen} Zen</span>
               </span>
@@ -189,7 +189,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
           <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-100">
             {stats.bestTimeMs ? formatMs(stats.bestTimeMs) : '—'}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1">
             {stats.bestTimeMs ? 'Fastest board solve' : 'No games yet'}
           </div>
         </div>
@@ -207,7 +207,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
           <div className="font-mono text-2xl sm:text-3xl font-extrabold text-slate-100">
             {stats.avgTimePerWordMs > 0 ? formatSecondsShort(stats.avgTimePerWordMs) : '—'}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1">
             Average time per word found
           </div>
         </div>
@@ -225,7 +225,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
           <div className="font-mono text-2xl sm:text-3xl font-extrabold text-amber-300">
             {stats.shortestBurstSpeedMs ? formatSecondsShort(stats.shortestBurstSpeedMs) : '—'}
           </div>
-          <div className="text-[11px] text-amber-400/80 mt-1">
+          <div className="text-xs text-amber-400/80 mt-1">
             Shortest gap between words
           </div>
         </div>
@@ -245,7 +245,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
                   Your Nemesis
                 </span>
               </div>
-              <span className="text-[10px] uppercase font-mono text-slate-400">Toughest Rival</span>
+              <span className="text-xs uppercase font-mono text-slate-400">Toughest Rival</span>
             </div>
 
             {nemesis ? (
@@ -285,14 +285,14 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
             )}
           </div>
 
-          <div className="text-[11px] text-slate-400 border-t border-slate-800/60 pt-3 mt-3">
+          <div className="text-xs text-slate-400 border-t border-slate-800/60 pt-3 mt-3">
             {nemesis
               ? `Tip: Stay focused on long words to close the ${formatSecondsShort(Math.abs(nemesis.avgTimeDeltaMs))} gap against ${nemesis.opponentName}.`
               : 'Multiplayer turns automatically sync rivalries.'}
           </div>
         </div>
 
-        {/* Head-to-Head Arena (Farkle Style Comparison Bars) */}
+        {/* Head-to-Head Arena */}
         <div className="lg:col-span-2 glass-panel rounded-2xl p-4 sm:p-5 border-slate-800 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800/80">
@@ -302,7 +302,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-100">Head-to-Head Arena</h3>
-                  <p className="text-[11px] text-slate-400">Farkle-style rivalry matchup bars</p>
+                  <p className="text-xs text-slate-400">Rivalry matchup bars</p>
                 </div>
               </div>
               <span className="text-xs font-mono text-slate-400">
@@ -331,7 +331,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-400 font-mono text-[11px]">
+                          <span className="text-slate-400 font-mono text-xs">
                             {isFaster ? (
                               <span className="text-emerald-400 font-semibold">
                                 +{formatSecondsShort(r.avgTimeDeltaMs)} faster
@@ -342,7 +342,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
                               </span>
                             )}
                           </span>
-                          <span className="text-slate-500">&bull;</span>
+                          <span className="text-slate-400">&bull;</span>
                           <span className="font-mono text-slate-400">{r.gamesPlayed}g</span>
                         </div>
 
@@ -350,7 +350,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
                           <span className="text-rose-400 font-mono font-bold">{r.losses}W</span>
                           <span className="font-bold text-slate-200">{r.opponentName}</span>
                           <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border ${oppAvatar.bg}`}
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold border ${oppAvatar.bg}`}
                           >
                             {r.opponentName[0].toUpperCase()}
                           </div>
@@ -394,7 +394,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-100">Performance by Grid Size</h3>
-            <p className="text-[11px] text-slate-400">Pacing and records across board difficulties</p>
+            <p className="text-xs text-slate-400">Pacing and records across board difficulties</p>
           </div>
         </div>
 
@@ -409,7 +409,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ currentPlayer })
               >
                 <div className="text-xs font-mono font-bold text-slate-200 mb-2 flex items-center justify-between">
                   <span>{label}</span>
-                  <span className="text-slate-400 text-[11px]">{g.completed} solved</span>
+                  <span className="text-slate-400 text-xs">{g.completed} solved</span>
                 </div>
                 <div className="space-y-1 text-xs font-mono">
                   <div className="flex justify-between">

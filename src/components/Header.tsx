@@ -57,16 +57,16 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-1 sm:gap-1.5">
               <span className="font-extrabold text-slate-100 tracking-tight text-base sm:text-lg">WordRush</span>
               {isZenMode ? (
-                <span className="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold">
+                <span className="text-xs uppercase font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold">
                   Zen
                 </span>
               ) : (
-                <span className="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span className="text-xs uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                   Fast
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-slate-400 hidden sm:block">
+            <p className="text-xs text-slate-400 hidden sm:block">
               {isZenMode ? 'Relaxed Untimed Word Search' : 'Multiplayer Speed Find-A-Word'}
             </p>
           </div>
@@ -250,7 +250,7 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-emerald-500 shrink-0"
                 />
               ) : (
-                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold text-[10px] sm:text-[11px] border shrink-0 ${avatar.bg}`}>
+                <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold text-xs border shrink-0 ${avatar.bg}`}>
                   {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : 'U'}
                 </div>
               )}

@@ -36,7 +36,7 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
       sounds.playWordFound();
       const newlyFound = stream.lastWordFound?.word || stream.wordsFound[stream.wordsFound.length - 1];
       if (newlyFound) {
-        setLastFlurryNotice(`Found "${newlyFound}"! ⚡`);
+        setLastFlurryNotice(`Found "${newlyFound}"!`);
         const timer = setTimeout(() => setLastFlurryNotice(null), 2500);
         return () => clearTimeout(timer);
       }
@@ -92,7 +92,7 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
                 </span>
               </div>
               <div className="text-xs text-slate-400 mt-0.5">
-                Round {roundNumber} of {totalRounds} &bull; <b className="text-slate-200">{themeName}</b> {themeDescription && <span className="hidden sm:inline text-slate-500">({themeDescription})</span>}
+                Round {roundNumber} of {totalRounds} &bull; <b className="text-slate-200">{themeName}</b> {themeDescription && <span className="hidden sm:inline text-slate-400">({themeDescription})</span>}
               </div>
             </div>
           </div>
@@ -100,7 +100,7 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
           <div className="flex items-center gap-3">
             {/* Live Timer */}
             <div className="text-right px-3 py-1.5 rounded-xl bg-dark-900 border border-slate-800">
-              <div className="flex items-center gap-1 text-[10px] font-mono uppercase text-slate-400 font-bold justify-end">
+              <div className="flex items-center gap-1 text-xs font-mono uppercase text-slate-400 font-bold justify-end">
                 <Clock className="w-3 h-3 text-cyan-400" />
                 <span>Elapsed</span>
               </div>
@@ -111,7 +111,7 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
 
             {/* Word Progress */}
             <div className="text-right px-3 py-1.5 rounded-xl bg-dark-900 border border-slate-800">
-              <div className="text-[10px] font-mono uppercase text-slate-400 font-bold">
+              <div className="text-xs font-mono uppercase text-slate-400 font-bold">
                 Words Found
               </div>
               <div className="font-mono font-black text-base sm:text-lg text-cyan-300">
@@ -154,10 +154,10 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
                   return (
                     <div
                       key={`spectator-cell-${r}-${c}`}
-                      className={`flex items-center justify-center font-mono font-black rounded text-[11px] sm:text-sm md:text-base transition-all duration-300 ${
+                      className={`flex items-center justify-center font-mono font-black rounded text-xs sm:text-sm md:text-base transition-all duration-300 ${
                         meta.isFound
                           ? 'text-white scale-105 shadow-sm'
-                          : 'text-slate-500/70 hover:text-slate-400'
+                          : 'text-slate-400/70 hover:text-slate-400'
                       }`}
                       style={{
                         backgroundColor: meta.isFound ? `${meta.color}40` : '#0f172a60',
@@ -190,7 +190,7 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
                     key={`spec-word-${idx}`}
                     className={`px-2.5 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center justify-between transition-all ${
                       isFound
-                        ? 'line-through text-slate-500 bg-slate-900/40 border border-slate-800/40 opacity-60'
+                        ? 'line-through text-slate-400 bg-slate-900/40 border border-slate-800/40 opacity-60'
                         : 'bg-dark-900 text-slate-200 border border-slate-800'
                     }`}
                   >
@@ -202,7 +202,7 @@ export const LiveSpectatorModal: React.FC<LiveSpectatorModalProps> = ({
                       )}
                       <span className="truncate">{w.word}</span>
                     </div>
-                    <span className="text-[10px] text-slate-500 font-normal">
+                    <span className="text-xs text-slate-400 font-normal">
                       {w.word.length}L
                     </span>
                   </div>

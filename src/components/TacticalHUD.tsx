@@ -22,7 +22,7 @@ export const TacticalHUD: React.FC<TacticalHUDProps> = ({
         <div className="flex items-center justify-center animate-bounce-subtle">
           <div className="px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-dark-950 font-black text-xs shadow-lg shadow-amber-500/30 flex items-center gap-1.5 border border-amber-300">
             <Zap className="w-4 h-4 fill-dark-950" />
-            <span>⚡ TACTICAL TRAP TOKEN EARNED! (Combo &lt;5s)</span>
+            <span>TACTICAL TRAP TOKEN EARNED! (Combo &lt;5s)</span>
           </div>
         </div>
       )}
@@ -42,11 +42,11 @@ export const TacticalHUD: React.FC<TacticalHUDProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 flex items-center gap-1">
+                <span className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1">
                   <span>Ambush Triggered</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
                 </span>
-                <span className="text-[10px] text-slate-400">
+                <span className="text-xs text-slate-400">
                   By {activeTrap.createdBy}
                 </span>
               </div>
@@ -65,7 +65,7 @@ export const TacticalHUD: React.FC<TacticalHUDProps> = ({
           </div>
 
           <div className="text-right shrink-0">
-            <div className="text-[10px] uppercase font-mono text-rose-300/80 font-bold">
+            <div className="text-xs uppercase font-mono text-rose-300/80 font-bold">
               Remaining
             </div>
             <div className="font-mono font-black text-sm sm:text-base text-rose-300">
@@ -78,9 +78,9 @@ export const TacticalHUD: React.FC<TacticalHUDProps> = ({
       {/* 3. Dodged Trap Notification */}
       {dodgedTrapsCount > 0 && !activeTrap && (
         <div className="flex items-center justify-center">
-          <div className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
+          <div className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-1.5 shadow-sm">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>🛡️ Outran {dodgedTrapsCount} Opponent Ambush{dodgedTrapsCount > 1 ? 'es' : ''}!</span>
+            <span>Outran {dodgedTrapsCount} Opponent Ambush{dodgedTrapsCount > 1 ? 'es' : ''}!</span>
           </div>
         </div>
       )}

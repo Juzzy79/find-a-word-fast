@@ -498,7 +498,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/60 text-cyan-400 border border-cyan-500/30 font-bold uppercase">
+                        <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-950/60 text-cyan-400 border border-cyan-500/30 font-bold uppercase">
                           Custom Topic
                         </span>
                         <h3 className="text-base font-extrabold text-white mt-1 group-hover:text-cyan-300 transition-colors">
@@ -514,27 +514,27 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     {/* Word Counts Badges for 14, 18, 22 */}
                     <div className="grid grid-cols-3 gap-1.5 mb-4 p-2 rounded-xl bg-dark-950 border border-slate-800/80 text-center">
                       <div className="p-1.5 rounded-lg bg-slate-900/60">
-                        <div className="text-[10px] text-slate-400 font-mono">16x16</div>
+                        <div className="text-xs text-slate-400 font-mono">16x16</div>
                         <div className={`text-xs font-black ${theme.words14?.length >= 14 ? 'text-emerald-400' : 'text-amber-400'}`}>
                           {theme.words14?.length || 0} / 14
                         </div>
-                        <div className="text-[9px] text-slate-500">words</div>
+                        <div className="text-xs text-slate-400">words</div>
                       </div>
 
                       <div className="p-1.5 rounded-lg bg-slate-900/60">
-                        <div className="text-[10px] text-slate-400 font-mono">18x18</div>
+                        <div className="text-xs text-slate-400 font-mono">18x18</div>
                         <div className={`text-xs font-black ${theme.words18?.length >= 18 ? 'text-emerald-400' : 'text-amber-400'}`}>
                           {theme.words18?.length || 0} / 18
                         </div>
-                        <div className="text-[9px] text-slate-500">words</div>
+                        <div className="text-xs text-slate-400">words</div>
                       </div>
 
                       <div className="p-1.5 rounded-lg bg-slate-900/60">
-                        <div className="text-[10px] text-slate-400 font-mono">20x20</div>
+                        <div className="text-xs text-slate-400 font-mono">20x20</div>
                         <div className={`text-xs font-black ${theme.words22?.length >= 22 ? 'text-emerald-400' : 'text-amber-400'}`}>
                           {theme.words22?.length || 0} / 22
                         </div>
-                        <div className="text-[9px] text-slate-500">words</div>
+                        <div className="text-xs text-slate-400">words</div>
                       </div>
                     </div>
 
@@ -543,13 +543,13 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                       {(theme.words14?.slice(0, 4) || theme.words.slice(0, 4)).map(w => (
                         <span
                           key={w}
-                          className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800/60 text-slate-300 border border-slate-700/60"
+                          className="text-xs font-mono px-2 py-0.5 rounded bg-slate-800/60 text-slate-300 border border-slate-700/60"
                         >
                           {w}
                         </span>
                       ))}
                       {(theme.words.length > 4) && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 text-slate-500">
+                        <span className="text-xs font-mono px-1.5 py-0.5 text-slate-400">
                           +{theme.words.length - 4} more
                         </span>
                       )}
@@ -562,7 +562,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => onPlayTopic(theme.id, 16)}
-                        className="px-2 py-1 rounded-lg bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-2 py-1 rounded-lg bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                         title="Play 16x16 (14 words)"
                       >
                         <Play className="w-3 h-3 fill-emerald-300" />
@@ -570,7 +570,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                       </button>
                       <button
                         onClick={() => onPlayTopic(theme.id, 18)}
-                        className="px-2 py-1 rounded-lg bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-2 py-1 rounded-lg bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-500/30 text-cyan-300 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                         title="Play 18x18 (18 words)"
                       >
                         <Play className="w-3 h-3 fill-cyan-300" />
@@ -578,7 +578,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                       </button>
                       <button
                         onClick={() => onPlayTopic(theme.id, 20)}
-                        className="px-2 py-1 rounded-lg bg-indigo-950/50 hover:bg-indigo-900/60 border border-indigo-500/30 text-indigo-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-2 py-1 rounded-lg bg-indigo-950/50 hover:bg-indigo-900/60 border border-indigo-500/30 text-indigo-300 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                         title="Play 20x20 (22 words)"
                       >
                         <Play className="w-3 h-3 fill-indigo-300" />
@@ -629,7 +629,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-950/60 text-amber-400 border border-amber-500/30 font-bold uppercase">
+                    <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-amber-950/60 text-amber-400 border border-amber-500/30 font-bold uppercase">
                       Built-in Theme
                     </span>
                     <h3 className="text-base font-extrabold text-white mt-1 group-hover:text-amber-300 transition-colors">
@@ -639,7 +639,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                 </div>
 
                 <p className="text-xs text-slate-400 mb-3">{theme.description}</p>
-                <div className="text-[11px] text-amber-300/80 font-mono mb-3">
+                <div className="text-xs text-amber-300/80 font-mono mb-3">
                   Pool: {theme.words.length} master words
                 </div>
 
@@ -648,12 +648,12 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                   {theme.words.slice(0, 5).map(w => (
                     <span
                       key={w}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800/60 text-slate-300 border border-slate-700/60"
+                      className="text-xs font-mono px-2 py-0.5 rounded bg-slate-800/60 text-slate-300 border border-slate-700/60"
                     >
                       {w}
                     </span>
                   ))}
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 text-slate-500">
+                  <span className="text-xs font-mono px-1.5 py-0.5 text-slate-400">
                     +{theme.words.length - 5} more
                   </span>
                 </div>
@@ -707,7 +707,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
               {!editingThemeId && (
                 <div className="p-3 rounded-2xl bg-cyan-950/20 border border-cyan-500/20">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-cyan-300 flex items-center gap-1">
+                    <span className="text-xs font-bold text-cyan-300 flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5" />
                       Quick Inspiration Starter Presets:
                     </span>
@@ -768,7 +768,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     <button
                       type="button"
                       onClick={handleCascadeFrom22}
-                      className="text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer flex items-center gap-1"
+                      className="text-xs text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer flex items-center gap-1"
                       title="If you entered 22 words in Large, this fills 14 and 18 words automatically!"
                     >
                       <Layers className="w-3 h-3" />
@@ -778,7 +778,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     <button
                       type="button"
                       onClick={handleCopy14Upwards}
-                      className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer flex items-center gap-1"
+                      className="text-xs text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer flex items-center gap-1"
                       title="Copy 14 words into the 18 and 22 word tiers"
                     >
                       <span>Copy 14 &uarr; Upwards</span>
@@ -803,14 +803,14 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black">Small (16x16)</span>
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md font-bold ${
+                        className={`text-xs font-mono px-1.5 py-0.5 rounded-md font-bold ${
                           words14.length >= 14 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
                         }`}
                       >
                         {words14.length} / 14
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">Max 16 letters</div>
+                    <div className="text-xs text-slate-400 mt-0.5">Max 16 letters</div>
                   </button>
 
                   <button
@@ -828,14 +828,14 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black">Medium (18x18)</span>
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md font-bold ${
+                        className={`text-xs font-mono px-1.5 py-0.5 rounded-md font-bold ${
                           words18.length >= 18 ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/20 text-amber-300'
                         }`}
                       >
                         {words18.length} / 18
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">Max 18 letters</div>
+                    <div className="text-xs text-slate-400 mt-0.5">Max 18 letters</div>
                   </button>
 
                   <button
@@ -853,14 +853,14 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black">Large (20x20)</span>
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded-md font-bold ${
+                        className={`text-xs font-mono px-1.5 py-0.5 rounded-md font-bold ${
                           words22.length >= 22 ? 'bg-indigo-500/20 text-indigo-300' : 'bg-amber-500/20 text-amber-300'
                         }`}
                       >
                         {words22.length} / 22
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">Max 20 letters</div>
+                    <div className="text-xs text-slate-400 mt-0.5">Max 20 letters</div>
                   </button>
                 </div>
 
@@ -873,7 +873,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowBulkInput(!showBulkInput)}
-                      className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-xs text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <FileText className="w-3 h-3" />
                       <span>{showBulkInput ? 'Single Word Mode' : 'Bulk Paste Mode'}</span>
@@ -927,7 +927,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
 
                   {/* Words Badges / Chips */}
                   <div className="mt-3 pt-3 border-t border-slate-800">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2">
+                    <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
                       <span>
                         Words in this tier: <strong className="text-white">{activeWordList.length}</strong> / {targetCount} required
                       </span>
@@ -939,7 +939,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                             else if (activeTier === 18) setWords18([]);
                             else setWords22([]);
                           }}
-                          className="text-rose-400 hover:underline text-[10px] cursor-pointer"
+                          className="text-rose-400 hover:underline text-xs cursor-pointer"
                         >
                           Clear tier
                         </button>
@@ -948,7 +948,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
 
                     <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1">
                       {activeWordList.length === 0 ? (
-                        <div className="text-xs text-slate-500 italic py-2">
+                        <div className="text-xs text-slate-400 italic py-2">
                           No words added yet for the {activeTier}-word tier. Add words above or use Bulk Paste.
                         </div>
                       ) : (
@@ -957,13 +957,13 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                             key={w}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-dark-950 border border-slate-700/80 text-xs font-mono text-cyan-200 group"
                           >
-                            <span className="text-[10px] text-slate-500">{idx + 1}.</span>
+                            <span className="text-xs text-slate-400">{idx + 1}.</span>
                             <span>{w}</span>
-                            <span className="text-[9px] text-slate-500">({w.length})</span>
+                            <span className="text-xs text-slate-400">({w.length})</span>
                             <button
                               type="button"
                               onClick={() => handleRemoveWord(w)}
-                              className="text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                              className="text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
                               title="Remove word"
                             >
                               <X className="w-3 h-3" />
@@ -1058,7 +1058,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                   row.map((letter, c) => (
                     <div
                       key={`${r}-${c}`}
-                      className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-[10px] sm:text-xs font-mono font-black rounded text-slate-300 bg-slate-900/80"
+                      className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-mono font-black rounded text-slate-300 bg-slate-900/80"
                     >
                       {letter}
                     </div>
@@ -1076,7 +1076,7 @@ export const AdminTopicsDashboard: React.FC<AdminTopicsDashboardProps> = ({
                 {previewBoard.words.map(w => (
                   <span
                     key={w.word}
-                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 font-semibold"
+                    className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 font-semibold"
                   >
                     {w.word}
                   </span>

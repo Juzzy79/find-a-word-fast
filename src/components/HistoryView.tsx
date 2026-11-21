@@ -40,10 +40,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentPlayer }) => {
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-800/80">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-200 text-sm">{h.theme}</span>
-                    <span className="text-[10px] font-mono uppercase bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/60">
+                    <span className="text-xs font-mono uppercase bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/60">
                       {h.gridSize}&times;{h.gridSize}
                     </span>
-                    <span className="text-[10px] font-mono uppercase bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded border border-violet-500/30">
+                    <span className="text-xs font-mono uppercase bg-violet-500/20 text-violet-300 px-1.5 py-0.5 rounded border border-violet-500/30">
                       {h.mode}
                     </span>
                   </div>
@@ -55,17 +55,17 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentPlayer }) => {
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono mb-2">
                   <div className="bg-dark-900/80 p-2 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 text-[10px] block uppercase">Time</span>
+                    <span className="text-slate-400 text-xs block uppercase">Time</span>
                     <span className="text-emerald-400 font-bold text-sm">{formatMs(h.elapsedMs)}</span>
                   </div>
                   <div className="bg-dark-900/80 p-2 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 text-[10px] block uppercase">Burst Combo</span>
+                    <span className="text-slate-400 text-xs block uppercase">Burst Combo</span>
                     <span className="text-amber-400 font-bold text-sm">
                       {h.burstSpeedMs > 0 ? formatSecondsShort(h.burstSpeedMs) : '—'}
                     </span>
                   </div>
                   <div className="bg-dark-900/80 p-2 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
-                    <span className="text-slate-400 text-[10px] block uppercase">Words Solved</span>
+                    <span className="text-slate-400 text-xs block uppercase">Words Solved</span>
                     <span className="text-slate-200 font-bold text-sm">{h.wordCount} words</span>
                   </div>
                 </div>
@@ -73,7 +73,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentPlayer }) => {
                 {/* Opponents Comparison if any */}
                 {h.opponentSummaries && h.opponentSummaries.length > 0 && (
                   <div className="pt-2 border-t border-slate-800/60 space-y-1">
-                    <div className="text-[11px] text-slate-400 font-mono uppercase">Opponents Faced:</div>
+                    <div className="text-xs text-slate-400 font-mono uppercase">Opponents Faced:</div>
                     {h.opponentSummaries.map((opp, oIdx) => {
                       const delta = opp.elapsedMs - h.elapsedMs;
                       return (
@@ -92,7 +92,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentPlayer }) => {
 
                           <div className="flex items-center gap-2">
                             <span className="text-slate-400">{formatMs(opp.elapsedMs)}</span>
-                            <span className={`text-[11px] font-bold ${delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            <span className={`text-xs font-bold ${delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                               ({delta >= 0 ? `+${formatSecondsShort(delta)} faster` : `${formatSecondsShort(delta)} slower`})
                             </span>
                           </div>

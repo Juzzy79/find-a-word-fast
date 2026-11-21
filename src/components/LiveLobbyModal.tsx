@@ -253,11 +253,11 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
               <div className="min-w-0">
                 <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5 flex-wrap">
                   <span>Global Champions & Records</span>
-                  <span className="text-[10px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded border border-amber-500/30">
+                  <span className="text-xs font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.2 rounded border border-amber-500/30">
                     Hall of Fame
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 truncate">
+                <div className="text-xs text-slate-400 truncate">
                   View crowned champions, fastest speeds, and archived tournament results!
                 </div>
               </div>
@@ -327,11 +327,11 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
               <div>
                 <div className="font-bold text-xs sm:text-sm text-slate-100 flex items-center gap-1.5">
                   <span>{currentUser.displayName}</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <span className="text-xs font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                     Google Connected
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 truncate max-w-[200px] sm:max-w-xs">
+                <div className="text-xs text-slate-400 truncate max-w-[200px] sm:max-w-xs">
                   {currentUser.email}
                 </div>
               </div>
@@ -396,7 +396,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
               <div className="text-center py-8 text-slate-400">
                 <Swords className="w-8 h-8 mx-auto mb-2 text-slate-600" />
                 <div className="text-xs font-bold text-slate-300 mb-1">No Active Cloud Matches</div>
-                <p className="text-[11px] text-slate-500 max-w-xs mx-auto mb-3">
+                <p className="text-xs text-slate-400 max-w-xs mx-auto mb-3">
                   Create a room to challenge anyone, or enter a room code if someone already created one!
                 </p>
                 <button
@@ -437,14 +437,14 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                               <span className="font-bold text-xs text-slate-100">
                                 {currentRound.theme}
                               </span>
-                              <span className="text-[10px] text-slate-400">
+                              <span className="text-xs text-slate-400">
                                 ({currentRound.gridSize}×{currentRound.gridSize})
                               </span>
-                              <span className="text-[10px] font-mono text-slate-400">
+                              <span className="text-xs font-mono text-slate-400">
                                 {m.mode === 'series' ? `${m.totalRounds}-Round Series` : 'Word Duel'}
                               </span>
                             </div>
-                            <div className="text-[11px] text-slate-400">
+                            <div className="text-xs text-slate-400">
                               Host: <b className="text-slate-200">{hostName}</b> &bull; Players: <span className="text-slate-300 font-semibold">{m.participants.join(', ')}</span>
                             </div>
                           </div>
@@ -460,7 +460,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                             </button>
                             <button
                               onClick={(e) => handleDeleteMatch(m.id, m.roomCode, e)}
-                              className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
+                              className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
                               title="Delete room"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -492,7 +492,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                       </div>
 
                       {/* Sub-Filter: All / Active / Archived */}
-                      <div className="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+                      <div className="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-slate-800 text-xs">
                         <button
                           onClick={() => setMatchSubFilter('all')}
                           className={`px-2 py-0.5 rounded-md font-medium transition-all ${
@@ -574,22 +574,22 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                                   <span className="font-bold text-xs text-slate-200">
                                     {currentRound.theme}
                                   </span>
-                                  <span className="text-[10px] text-slate-400">
+                                  <span className="text-xs text-slate-400">
                                     ({currentRound.gridSize}×{currentRound.gridSize})
                                   </span>
                                   {isArchived ? (
-                                    <span className="text-[10px] font-mono text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1 font-bold">
+                                    <span className="text-xs font-mono text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1 font-bold">
                                       <Archive className="w-2.5 h-2.5" />
                                       Archived
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                    <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                                       Live Room
                                     </span>
                                   )}
                                 </div>
-                                <span className="text-[10px] font-mono text-slate-400">
-                                  {m.mode === 'series' ? `${m.totalRounds}-Round Series` : 'Quick Duel'}
+                                <span className="text-xs font-mono text-slate-400">
+                                  {m.mode === 'series' ? `${m.totalRounds}-Round Series` : 'Duel'}
                                 </span>
                               </div>
 
@@ -606,7 +606,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                                         onClose();
                                         onOpenChampions();
                                       }}
-                                      className="text-[10px] text-amber-400 hover:text-amber-300 font-semibold underline cursor-pointer"
+                                      className="text-xs text-amber-400 hover:text-amber-300 font-semibold underline cursor-pointer"
                                     >
                                       View in Hall
                                     </button>
@@ -621,7 +621,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                                     {m.participants.join(', ')}
                                   </span>
                                   {opponentResults.length > 0 && (
-                                    <span className="text-emerald-400 text-[11px] font-mono font-bold">
+                                    <span className="text-emerald-400 text-xs font-mono font-bold">
                                       &bull; Best: {formatMs(Math.min(...opponentResults.map(o => o.elapsedMs)))}
                                     </span>
                                   )}
@@ -671,7 +671,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
 
                                   <button
                                     onClick={(e) => handleDeleteMatch(m.id, m.roomCode, e)}
-                                    className="p-1.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
+                                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
                                     title="Delete room"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -699,8 +699,8 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { mode: 'duel' as GameMode, title: 'Quick Duel', desc: '1-Round Showdown' },
-                  { mode: 'series' as GameMode, title: 'Multi-Round Series', desc: '3 Rounds Aggregate' }
+                  { mode: 'duel' as GameMode, title: 'Duel', desc: '1-Round Showdown' },
+                  { mode: 'series' as GameMode, title: 'Series', desc: '3 Rounds Aggregate' }
                 ].map(opt => (
                   <button
                     key={`m-${opt.mode}`}
@@ -712,7 +712,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                     }`}
                   >
                     <div className="text-xs font-bold">{opt.title}</div>
-                    <div className="text-[10px] text-slate-500">{opt.desc}</div>
+                    <div className="text-xs text-slate-400">{opt.desc}</div>
                   </button>
                 ))}
               </div>
@@ -727,8 +727,8 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { lvl: 'standard' as DifficultyLevel, title: 'Standard', desc: 'H & V Only' },
-                  { lvl: 'pro' as DifficultyLevel, title: 'Pro ✨', desc: '+ Diagonals' },
-                  { lvl: 'expert' as DifficultyLevel, title: 'Expert ⚡', desc: '8-Way + Rev' }
+                  { lvl: 'pro' as DifficultyLevel, title: 'Pro', desc: '+ Diagonals' },
+                  { lvl: 'expert' as DifficultyLevel, title: 'Expert', desc: '8-Way + Rev' }
                 ].map(item => (
                   <button
                     key={`diff-${item.lvl}`}
@@ -740,7 +740,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                     }`}
                   >
                     <div className="text-xs font-bold font-mono">{item.title}</div>
-                    <div className="text-[10px] text-slate-500">{item.desc}</div>
+                    <div className="text-xs text-slate-400">{item.desc}</div>
                   </button>
                 ))}
               </div>
@@ -787,7 +787,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                     }`}
                   >
                     <div className="text-xs font-bold font-mono">{item.label}</div>
-                    <div className="text-[9px] text-slate-500">{item.words}</div>
+                    <div className="text-xs text-slate-400">{item.words}</div>
                   </button>
                 ))}
               </div>
@@ -797,7 +797,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
             <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
               <div>
                 <div className="text-xs font-bold text-slate-200">Total Chaos Mode</div>
-                <div className="text-[10px] text-slate-400">Random words instead of a single theme</div>
+                <div className="text-xs text-slate-400">Random words instead of a single theme</div>
               </div>
               <button
                 type="button"
@@ -849,7 +849,7 @@ export const LiveLobbyModal: React.FC<LiveLobbyModalProps> = ({
                 onChange={e => setJoinCode(e.target.value.toUpperCase())}
                 className="w-full bg-dark-950 border border-slate-700 rounded-2xl py-3 px-4 font-mono font-black text-xl text-center tracking-widest text-emerald-400 focus:outline-none focus:border-emerald-500"
               />
-              <p className="text-[11px] text-slate-500 mt-1.5 text-center">
+              <p className="text-xs text-slate-400 mt-1.5 text-center">
                 Ask your opponent for their 6-character room code.
               </p>
             </div>

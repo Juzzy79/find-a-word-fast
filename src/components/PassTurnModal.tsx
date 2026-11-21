@@ -78,10 +78,10 @@ export const PassTurnModal: React.FC<PassTurnModalProps> = ({
             <Trophy className="w-6 h-6" />
           </div>
           <h2 className="text-2xl font-extrabold tracking-tight">
-            {game.mode === 'zen' ? 'Zen Board Solved! 🌸' : 'Turn Completed!'}
+            {game.mode === 'zen' ? 'Zen Board Solved!' : 'Turn Completed!'}
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            {game.mode === 'zen' ? 'Relaxed Mode &bull; No Timers' : `Round ${currentRound.roundNumber}`} &bull; {currentRound.theme} ({currentRound.gridSize}&times;{currentRound.gridSize})
+            {game.mode === 'zen' ? 'Zen • Untimed' : `Round ${currentRound.roundNumber}`} &bull; {currentRound.theme} ({currentRound.gridSize}&times;{currentRound.gridSize})
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export const PassTurnModal: React.FC<PassTurnModalProps> = ({
           game.mode === 'zen' ? (
             <div className="bg-dark-900/90 border border-teal-500/30 rounded-xl p-3 text-center mb-5">
               <div className="text-xs font-mono uppercase text-teal-400 font-semibold mb-1">
-                Completed in Zen Mode
+                Completed in Zen
               </div>
               <div className="text-sm text-slate-200">
                 All words found peacefully without timer stress!
@@ -99,13 +99,13 @@ export const PassTurnModal: React.FC<PassTurnModalProps> = ({
           ) : (
             <div className="grid grid-cols-2 gap-2 mb-5">
               <div className="bg-dark-900/90 border border-slate-800 rounded-xl p-3 text-center">
-                <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Your Time</div>
+                <div className="text-xs uppercase font-mono tracking-wider text-slate-400">Your Time</div>
                 <div className="font-mono text-xl sm:text-2xl font-extrabold text-emerald-400">
                   {formatMs(currentTurnResult.elapsedMs)}
                 </div>
               </div>
               <div className="bg-dark-900/90 border border-slate-800 rounded-xl p-3 text-center">
-                <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Fastest Burst</div>
+                <div className="text-xs uppercase font-mono tracking-wider text-slate-400">Fastest Burst</div>
                 <div className="font-mono text-xl sm:text-2xl font-extrabold text-amber-400">
                   {currentTurnResult.burstSpeedMs > 0 ? formatSecondsShort(currentTurnResult.burstSpeedMs) : '—'}
                 </div>
@@ -138,7 +138,7 @@ export const PassTurnModal: React.FC<PassTurnModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[11px] ${
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs ${
                       idx === 0
                         ? 'bg-amber-400 text-dark-950 shadow-sm'
                         : idx === 1
@@ -151,7 +151,7 @@ export const PassTurnModal: React.FC<PassTurnModalProps> = ({
                     </span>
                     <span className="font-sans font-semibold">{r.playerName}</span>
                     {isCurrent && (
-                      <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/20 px-1.5 py-0.2 rounded">
+                      <span className="text-xs uppercase font-bold text-emerald-400 bg-emerald-500/20 px-1.5 py-0.2 rounded">
                         You
                       </span>
                     )}
@@ -159,7 +159,7 @@ export const PassTurnModal: React.FC<PassTurnModalProps> = ({
 
                   <div className="flex items-center gap-2">
                     {idx > 0 && deltaMs > 0 && (
-                      <span className="text-[11px] text-slate-500 font-sans hidden sm:inline">
+                      <span className="text-xs text-slate-400 font-sans hidden sm:inline">
                         +{formatSecondsShort(deltaMs)}
                       </span>
                     )}
@@ -168,7 +168,7 @@ export const PassTurnModal: React.FC<PassTurnModalProps> = ({
                     {onWatchReplay && (
                       <button
                         onClick={() => onWatchReplay(r)}
-                        className="px-2 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-[11px] font-bold flex items-center gap-1 transition-all ml-1"
+                        className="px-2 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center gap-1 transition-all ml-1"
                         title={`Watch high-speed replay of ${r.playerName}'s round`}
                       >
                         <Zap className="w-3 h-3 text-cyan-400 fill-cyan-400" />
@@ -189,7 +189,7 @@ export const PassTurnModal: React.FC<PassTurnModalProps> = ({
               <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
               <span>{roundResults.length >= 2 ? 'Room Results' : 'Invite Opponent to Live Room'}</span>
             </span>
-            <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+            <span className="text-xs text-emerald-400 font-mono flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Live Sync Active
             </span>

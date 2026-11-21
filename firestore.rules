@@ -1,0 +1,229 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches Firebase Auth UID)
+    // Fields:
+    //   - uid: string (required, immutable, 1-128 chars, matches auth.uid)
+    //   - displayName: string (required, 1-50 chars)
+    //   - email: string (required, valid email or empty, max 100 chars)
+    //   - photoURL: string (optional, valid URL or empty, max 500 chars)
+    //   - avatarColor: string (required, 1-32 chars)
+    //   - careerStats: map (required, player career stats, max 20 keys)
+    //   - updatedAt: timestamp or number (required)
+    //
+    // Collection: matches
+    // Document ID: {matchId} (unique match UUID or identifier, matches id)
+    // Fields:
+    //   - id: string (required, immutable, 1-64 chars, matches matchId)
+    //   - roomCode: string (required, immutable, 6 uppercase alphanumeric chars)
+    //   - title: string (required, 1-100 chars)
+    //   - mode: string (required, 'duel' | 'series' | 'weekly' | 'practice' | 'zen')
+    //   - gridSize: number (required, 16 | 18 | 20)
+    //   - difficulty: string (required, 'standard' | 'pro' | 'expert')
+    //   - status: string (required, 'waiting' | 'active' | 'completed')
+    //   - totalRounds: number (required, 1-10)
+    //   - currentRoundIndex: number (required, 0-10)
+    //   - rounds: list of maps (required, up to 10 items; each round contains seed, theme, themeDescription, gridSize, difficulty, targetWordCount, results)
+    //   - participants: list of strings (required, up to 50 items)
+    //   - participantUids: list of strings (required, up to 50 items, contains creatorUid on create)
+    //   - createdBy: string (required, 1-50 chars)
+    //   - creatorUid: string (required, immutable, 1-128 chars, matches auth.uid on create)
+    //   - creatorEmail: string (optional, max 100 chars)
+    //   - createdAt: timestamp or number (required, immutable)
+    //   - lastUpdated: timestamp or number (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+             email.size() >= 3 &&
+             email.size() <= 100 &&
+             email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+             url.size() <= 500 &&
+             (url == '' || url.matches("^https?://.*"));
+    }
+
+    function isValidTimestampOrNumber(val) {
+      return val is timestamp || (val is number && val > 0);
+    }
+
+    // ===============================================================
+    // Domain Validator: Users
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(data, ['uid', 'displayName', 'email', 'avatarColor', 'careerStats', 'updatedAt']) &&
+             hasOnlyAllowedFields(data, ['uid', 'displayName', 'email', 'photoURL', 'avatarColor', 'careerStats', 'updatedAt']) &&
+             data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 50 &&
+             data.email is string && data.email.size() <= 100 && (data.email == '' || isValidEmail(data.email)) &&
+             (!('photoURL' in data) || isValidUrl(data.photoURL)) &&
+             data.avatarColor is string && data.avatarColor.size() >= 1 && data.avatarColor.size() <= 32 &&
+             data.careerStats is map && data.careerStats.size() <= 20 &&
+             isValidTimestampOrNumber(data.updatedAt);
+    }
+
+    // ===============================================================
+    // Domain Validator: Matches
+    // ===============================================================
+
+    function isValidMatch(data) {
+      return hasRequiredFields(data, [
+               'id', 'roomCode', 'title', 'mode', 'gridSize', 'difficulty',
+               'status', 'totalRounds', 'currentRoundIndex', 'rounds',
+               'participants', 'participantUids', 'createdBy', 'creatorUid',
+               'createdAt', 'lastUpdated'
+             ]) &&
+             hasOnlyAllowedFields(data, [
+               'id', 'roomCode', 'title', 'mode', 'gridSize', 'difficulty',
+               'status', 'totalRounds', 'currentRoundIndex', 'rounds',
+               'participants', 'participantUids', 'createdBy', 'creatorUid',
+               'creatorEmail', 'createdAt', 'lastUpdated'
+             ]) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 64 &&
+             data.roomCode is string && data.roomCode.matches("^[A-Z0-9]{6}$") &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 100 &&
+             data.mode in ['duel', 'series', 'weekly', 'practice', 'zen'] &&
+             data.gridSize in [16, 18, 20] &&
+             data.difficulty in ['standard', 'pro', 'expert'] &&
+             data.status in ['waiting', 'active', 'completed'] &&
+             data.totalRounds is number && data.totalRounds >= 1 && data.totalRounds <= 10 &&
+             data.currentRoundIndex is number && data.currentRoundIndex >= 0 && data.currentRoundIndex <= 10 &&
+             data.rounds is list && data.rounds.size() <= 10 &&
+             data.participants is list && data.participants.size() <= 50 &&
+             data.participantUids is list && data.participantUids.size() <= 50 &&
+             data.createdBy is string && data.createdBy.size() >= 1 && data.createdBy.size() <= 50 &&
+             data.creatorUid is string && data.creatorUid.size() >= 1 && data.creatorUid.size() <= 128 &&
+             (!('creatorEmail' in data) || (data.creatorEmail is string && data.creatorEmail.size() <= 100)) &&
+             isValidTimestampOrNumber(data.createdAt) &&
+             isValidTimestampOrNumber(data.lastUpdated);
+    }
+
+    function isValidStatusTransition() {
+      let prevStatus = resource.data.status;
+      let nextStatus = request.resource.data.status;
+      return prevStatus == nextStatus ||
+             (prevStatus == 'waiting' && nextStatus in ['active', 'completed']) ||
+             (prevStatus == 'active' && nextStatus == 'completed');
+    }
+
+    // ===============================================================
+    // Root Rule: Default Deny All
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ===============================================================
+    // Collection: users
+    // ===============================================================
+    match /users/{userId} {
+      // Authenticated users can read user profiles to display opponent avatars,
+      // handles, and stats on leaderboards and in-game matchup displays.
+      allow read: if isAuthenticated();
+
+      // Users can only create their own user document
+      allow create: if isOwner(userId) &&
+                       isValidUser(request.resource.data) &&
+                       request.resource.data.uid == request.auth.uid;
+
+      // Users can only update their own user document; uid is strictly immutable
+      allow update: if isOwner(userId) &&
+                       isValidUser(request.resource.data) &&
+                       request.resource.data.uid == resource.data.uid &&
+                       areImmutableFieldsUnchanged(['uid']);
+
+      // User profile deletion is disabled for clients
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // Collection: matches
+    // ===============================================================
+    match /matches/{matchId} {
+      // Open read access allows guests, newly arriving players before Google sign-in
+      // completes, or players checking room codes to discover and join matches
+      allow read: if true;
+
+      // Authenticated users or guests can create a match as creator
+      allow create: if isValidMatch(request.resource.data) &&
+                       request.resource.data.id == matchId &&
+                       request.resource.data.status in ['waiting', 'active'] &&
+                       (
+                         (isAuthenticated() && request.resource.data.creatorUid == request.auth.uid) ||
+                         (!isAuthenticated() && request.resource.data.creatorUid.size() >= 1)
+                       );
+
+      // Update rules:
+      // 1. Data must remain a valid match structure.
+      // 2. Status transitions must follow valid game lifecycle.
+      // 3. Immutable match attributes (id, roomCode, creatorUid, createdAt) can never change.
+      // 4. Either:
+      //    a) Authenticated creator can update any field.
+      //    b) Non-creator or unauthenticated guest can only update participants, participantUids, rounds, currentRoundIndex, status, and lastUpdated.
+      allow update: if isValidMatch(request.resource.data) &&
+                       isValidStatusTransition() &&
+                       areImmutableFieldsUnchanged(['id', 'roomCode', 'creatorUid', 'createdAt']) &&
+                       (
+                         // Match creator can update any field
+                         (isAuthenticated() && resource.data.creatorUid == request.auth.uid) ||
+                         // Non-creator or guest updates are restricted to participants, participantUids, rounds, currentRoundIndex, status, and lastUpdated
+                         (
+                           request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                             'participants', 'participantUids', 'rounds', 'currentRoundIndex', 'status', 'lastUpdated'
+                           ])
+                         )
+                       );
+
+      // Match deletion allowed if:
+      // 1. Authenticated user who is the creator, a participant, or the room was created by a guest.
+      // 2. Non-authenticated guest if the room was created by a guest.
+      allow delete: if (
+                         isAuthenticated() && (
+                           resource.data.creatorUid == request.auth.uid ||
+                           resource.data.participantUids.hasAny([request.auth.uid]) ||
+                           resource.data.creatorUid.matches('^guest_.*')
+                         )
+                       ) ||
+                       (
+                         !isAuthenticated() &&
+                         resource.data.creatorUid.matches('^guest_.*')
+                       );
+    }
+  }
+}
+

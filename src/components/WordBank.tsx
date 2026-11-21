@@ -8,6 +8,7 @@ interface WordBankProps {
   themeDescription: string;
   isCovered?: boolean;
   isGlitched?: boolean;
+  isSheet?: boolean;
 }
 
 export const WordBank: React.FC<WordBankProps> = ({
@@ -15,7 +16,8 @@ export const WordBank: React.FC<WordBankProps> = ({
   theme,
   themeDescription,
   isCovered = false,
-  isGlitched = false
+  isGlitched = false,
+  isSheet = false
 }) => {
   const [sortByLength, setSortByLength] = useState(false);
 
@@ -91,8 +93,12 @@ export const WordBank: React.FC<WordBankProps> = ({
           </div>
         </div>
 
-        {/* Word Chips: Compact horizontal swipe on mobile, clean vertical scrolling list on desktop sidebar */}
-        <div className="flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto pb-1 lg:pb-0 scrollbar-none items-stretch">
+        {/* Word Chips: Grid layout in sheet mode, compact horizontal swipe on standalone mobile, clean vertical scrolling list on desktop sidebar */}
+        <div className={
+          isSheet
+            ? "grid grid-cols-2 sm:grid-cols-3 gap-1.5 overflow-y-auto max-h-[50vh] p-0.5"
+            : "flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto pb-1 lg:pb-0 scrollbar-none items-stretch"
+        }>
           {displayWords.map((w, idx) => {
             return (
               <div

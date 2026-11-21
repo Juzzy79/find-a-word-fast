@@ -32,15 +32,24 @@ export const WordGrid: React.FC<WordGridProps> = ({
   const [selectionCurrent, setSelectionCurrent] = useState<Coordinate | null>(null);
   const [selectedCells, setSelectedCells] = useState<Coordinate[]>([]);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [invalidSelection, setInvalidSelection] = useState<{ start: Coordinate; end: Coordinate } | null>(null);
+  const [isShaking, setIsShaking] = useState<boolean>(false);
 
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef<boolean>(false);
   const lastCellRef = useRef<string>('');
+  const shakeTimerRef = useRef<number | null>(null);
 
   // Reset zoom if board size changes
   useEffect(() => {
     setZoomLevel(1);
   }, [size]);
+
+  useEffect(() => {
+    return () => {
+      if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+    };
+  }, []);
 
   // Determine snapped 8-directional cells between two coordinates with generous diagonal tolerance
   const calculateSnappedCells = useCallback((start: Coordinate, current: Coordinate): Coordinate[] => {
@@ -155,6 +164,21 @@ export const WordGrid: React.FC<WordGridProps> = ({
 
     if (targetWord) {
       onWordFound(targetWord.word);
+    } else {
+      // Wrong selection of 3+ letters: trigger shake, dull tick, and brief red tint
+      sounds.playWrongTick();
+      triggerHaptic('medium');
+      setInvalidSelection({
+        start: cells[0],
+        end: cells[cells.length - 1]
+      });
+      setIsShaking(true);
+
+      if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+      shakeTimerRef.current = window.setTimeout(() => {
+        setInvalidSelection(null);
+        setIsShaking(false);
+      }, 400);
     }
   };
 
@@ -231,28 +255,31 @@ export const WordGrid: React.FC<WordGridProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-dark-900 border border-slate-800 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-dark-900 border border-slate-800 rounded-xl p-0.5">
           <button
             onClick={() => setZoomLevel(prev => Math.max(0.7, prev - 0.1))}
-            className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
             title="Zoom Out"
+            aria-label="Zoom Out"
           >
-            <ZoomOut className="w-3.5 h-3.5" />
+            <ZoomOut className="w-4 h-4" />
           </button>
-          <span className="font-mono text-[11px] px-1">{Math.round(zoomLevel * 100)}%</span>
+          <span className="font-mono text-[11px] px-1.5 min-w-[36px] text-center select-none">{Math.round(zoomLevel * 100)}%</span>
           <button
             onClick={() => setZoomLevel(prev => Math.min(1.4, prev + 0.1))}
-            className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
             title="Zoom In"
+            aria-label="Zoom In"
           >
-            <ZoomIn className="w-3.5 h-3.5" />
+            <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={() => setZoomLevel(1)}
-            className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors ml-0.5"
+            className="w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
             title="Reset Zoom"
+            aria-label="Reset Zoom"
           >
-            <RotateCcw className="w-3 h-3" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -270,6 +297,8 @@ export const WordGrid: React.FC<WordGridProps> = ({
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
             className={`wordrush-grid-board relative touch-no-select grid p-1.5 sm:p-2.5 rounded-2xl bg-dark-900 border border-slate-800/90 shadow-2xl overflow-hidden aspect-square ${
+              isShaking ? 'animate-shake border-rose-500/50' : ''
+            } ${
               disabled || isCovered ? 'opacity-85 pointer-events-none' : 'cursor-crosshair'
             }`}
             style={{
@@ -337,6 +366,21 @@ export const WordGrid: React.FC<WordGridProps> = ({
                   strokeLinecap="round"
                   strokeOpacity="0.35"
                   className="animate-pulse"
+                />
+              )}
+
+              {/* Render invalid wrong-selection tracer with red tint */}
+              {invalidSelection && (
+                <line
+                  x1={`${(invalidSelection.start.col + 0.5) * (100 / size)}%`}
+                  y1={`${(invalidSelection.start.row + 0.5) * (100 / size)}%`}
+                  x2={`${(invalidSelection.end.col + 0.5) * (100 / size)}%`}
+                  y2={`${(invalidSelection.end.row + 0.5) * (100 / size)}%`}
+                  stroke="#ef4444"
+                  strokeWidth={size >= 20 ? "22" : "26"}
+                  strokeLinecap="round"
+                  strokeOpacity="0.65"
+                  className="transition-opacity duration-300"
                 />
               )}
             </svg>

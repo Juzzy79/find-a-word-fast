@@ -31,7 +31,7 @@ import {
   getCareerStats
 } from './utils/statsStorage';
 import { sounds, triggerHaptic } from './utils/sound';
-import { Play, Share2, Trophy, Swords, Zap, Coffee, RotateCcw, LogOut, Flame } from 'lucide-react';
+import { Play, Share2, Trophy, Swords, Zap, Coffee, RotateCcw, LogOut, Flame, ChevronDown, X, Sparkles } from 'lucide-react';
 import { formatMs } from './utils/formatters';
 import { auth, loginWithGoogle, logoutUser, onAuthStateChanged, type User } from './services/firebase';
 import { LiveLobbyModal } from './components/LiveLobbyModal';
@@ -66,14 +66,13 @@ export function App() {
   const [activeTab, setActiveTab] = useState<'game' | 'stats' | 'competitions' | 'history' | 'champions' | 'admin'>('game');
   const [currentPlayer, setCurrentPlayer] = useState<string>(() => getCurrentProfile());
 
-  // Modals state - Automatically open sign-in if the player hasn't signed in yet
-  const [showProfileModal, setShowProfileModal] = useState<boolean>(() => {
+  // Modals state - Do NOT auto-open sign-in on first visit
+  const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
+  const [showHowToPlay, setShowHowToPlay] = useState<boolean>(() => {
     if (typeof localStorage === 'undefined') return false;
-    const hasSignedIn = localStorage.getItem('wordrush_has_signed_in');
-    const profile = localStorage.getItem('wordrush_current_profile');
-    // If not explicitly signed in or still default "Player 1", pop sign in on open
-    return !hasSignedIn || !profile || profile.trim().toLowerCase() === 'player 1';
+    return !localStorage.getItem('wordrush_seen_how_to_play');
   });
+  const [isMobileWordSheetOpen, setIsMobileWordSheetOpen] = useState<boolean>(false);
   const [showCompetitionModal, setShowCompetitionModal] = useState<boolean>(false);
   const [showPassTurnModal, setShowPassTurnModal] = useState<boolean>(false);
   const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false);
@@ -1029,6 +1028,13 @@ export function App() {
   const currentTurnResult = currentRound.results[currentPlayer.toLowerCase()];
   const career = getCareerStats(currentPlayer);
 
+  const handleDismissHowToPlay = () => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('wordrush_seen_how_to_play', 'true');
+    }
+    setShowHowToPlay(false);
+  };
+
   const deduplicatedRoundResults = Object.values(currentRound.results).reduce<PlayerTurnResult[]>((acc, res) => {
     if (!acc.some(r => r.playerName.toLowerCase() === res.playerName.toLowerCase())) {
       acc.push(res);
@@ -1211,6 +1217,73 @@ export function App() {
               onTogglePause={handleTogglePause}
             />
 
+            {/* Mobile Compact Word List Strip ("N left") */}
+            <div className="lg:hidden w-full mb-2.5">
+              <button
+                onClick={() => setIsMobileWordSheetOpen(true)}
+                className="w-full glass-panel border border-slate-800/90 rounded-2xl p-2.5 px-3 flex items-center justify-between text-left hover:border-slate-700 transition-all cursor-pointer active:scale-[0.99] shadow-sm"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-200 truncate">
+                        {game.mode === 'zen' ? board.theme : (isPaused || (!isRunning && !isCompletedThisRound)) ? 'Target Words' : board.theme}
+                      </span>
+                      <span className="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                        {totalWords - foundWordsCount} left
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 text-xs text-slate-400 shrink-0 font-medium">
+                  <span>View List</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </div>
+              </button>
+            </div>
+
+            {/* Mobile Collapsible Sheet for Word List */}
+            {isMobileWordSheetOpen && (
+              <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-xs animate-fade-in lg:hidden">
+                <div 
+                  className="fixed inset-0" 
+                  onClick={() => setIsMobileWordSheetOpen(false)}
+                />
+                <div className="relative z-10 glass-panel bg-dark-900 border-t border-slate-700/80 rounded-t-3xl p-4 max-h-[80vh] flex flex-col shadow-2xl animate-slide-up">
+                  <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-3 shrink-0" />
+                  <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800 shrink-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm font-bold text-slate-100 truncate">{board.theme}</span>
+                      <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-bold shrink-0">
+                        {totalWords - foundWordsCount} left
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setIsMobileWordSheetOpen(false)}
+                      className="p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
+                      aria-label="Close word list sheet"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="overflow-y-auto flex-1 pb-4">
+                    <WordBank
+                      words={board.words}
+                      theme={board.theme}
+                      themeDescription={board.themeDescription}
+                      isCovered={game.mode === 'zen' ? false : (isPaused || (!isRunning && !isCompletedThisRound))}
+                      isGlitched={activeTrap?.type === 'wordlist_glitch'}
+                      isSheet={true}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Start Turn Callout (only for timed competitive modes when not in active cloud match) */}
             {game.mode !== 'zen' && !isRunning && !isPaused && !isCompletedThisRound && !activeCloudMatch && (
               <div className="w-full mx-auto mb-3 p-4 rounded-2xl bg-dark-900 border border-emerald-500/40 text-center shadow-xl shadow-emerald-500/5">
@@ -1256,8 +1329,8 @@ export function App() {
 
             {/* Main Game Arena: Left WordBank Sidebar + Large Board on Desktop */}
             <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-3 sm:gap-6 w-full">
-              {/* Target Words Bank (Left-hand navigation panel on desktop, top/bottom on mobile) */}
-              <div className="w-full lg:w-72 xl:w-80 shrink-0 order-2 lg:order-1">
+              {/* Target Words Bank (Desktop sidebar: hidden on mobile, left sidebar on desktop) */}
+              <div className="hidden lg:block w-72 xl:w-80 shrink-0">
                 <WordBank
                   words={board.words}
                   theme={board.theme}
@@ -1267,8 +1340,8 @@ export function App() {
                 />
               </div>
 
-              {/* Interactive Grid Canvas (Takes full remaining space on the right) */}
-              <div className="flex-1 flex justify-center w-full order-1 lg:order-2">
+              {/* Interactive Grid Canvas (Takes full space) */}
+              <div className="flex-1 flex justify-center w-full">
                 <WordGrid
                   board={board}
                   onWordFound={handleWordFound}
@@ -1490,6 +1563,35 @@ export function App() {
           roundNumber={(liveStreamData || spectatingStream).roundIndex + 1}
           totalRounds={activeCloudMatch?.totalRounds || game.totalRounds}
         />
+      )}
+
+      {/* First-Visit How-To-Play Card */}
+      {showHowToPlay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="glass-panel max-w-sm w-full p-6 rounded-3xl border border-emerald-500/40 shadow-2xl text-center flex flex-col items-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-400 p-0.5 shadow-xl shadow-emerald-500/20 mb-4 flex items-center justify-center">
+              <div className="w-full h-full bg-dark-900 rounded-[14px] flex items-center justify-center">
+                <Swords className="w-7 h-7 text-emerald-400" />
+              </div>
+            </div>
+            <h2 className="text-xl font-black text-white tracking-tight mb-2">
+              Welcome to WordRush!
+            </h2>
+            <p className="text-sm text-slate-300 leading-relaxed mb-6 font-medium">
+              Drag across letters to find the words. Fastest time wins.
+            </p>
+            <button
+              onClick={handleDismissHowToPlay}
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-dark-950 font-black text-base shadow-xl shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Play className="w-5 h-5 fill-dark-950" />
+              <span>Play</span>
+            </button>
+            <p className="text-[11px] text-slate-400 mt-4">
+              Sign-in is available anytime from the profile button in the top bar.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
